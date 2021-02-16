@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 880611Gakki.
+    url: jdbc:mysql://39.97.186.233/miaosha?characterEncoding=utf-8&usingSSL=false
+  redis:
+    host: 39.97.186.233
+    port: 6379
