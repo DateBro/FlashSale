@@ -15,7 +15,7 @@ import javax.persistence.Id;
 @Data
 public class ProductStock {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer stockId;
 
     private Integer stock;

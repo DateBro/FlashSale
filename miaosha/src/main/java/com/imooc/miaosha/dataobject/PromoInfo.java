@@ -17,7 +17,7 @@ import java.util.Date;
 @Data
 public class PromoInfo {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer promoId;
 
     private String promoName;

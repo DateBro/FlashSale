@@ -15,7 +15,7 @@ import javax.persistence.Id;
 @Data
 public class BuyerInfo {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer buyerId;
 
     private String username;

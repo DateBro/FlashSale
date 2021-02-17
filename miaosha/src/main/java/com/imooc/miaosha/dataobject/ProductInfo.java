@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @Data
 public class ProductInfo {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer productId;
 
     private String productName;

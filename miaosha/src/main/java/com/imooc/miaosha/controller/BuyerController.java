@@ -1,14 +1,27 @@
 package com.imooc.miaosha.controller;
 
+import com.alibaba.druid.util.StringUtils;
+import com.imooc.miaosha.converter.BuyerForm2BuyerDTOConverter;
+import com.imooc.miaosha.dataobject.BuyerInfo;
+import com.imooc.miaosha.dto.BuyerDTO;
+import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.enums.VerifyCodeEnum;
+import com.imooc.miaosha.exception.MiaoshaException;
+import com.imooc.miaosha.form.BuyerForm;
+import com.imooc.miaosha.service.Impl.BuyerServiceImpl;
 import com.imooc.miaosha.utils.ResultVOUtil;
 import com.imooc.miaosha.utils.VerifyCodeUtil;
+import com.imooc.miaosha.viewobject.BuyerVO;
 import com.imooc.miaosha.viewobject.ResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * @Author DateBro
@@ -17,11 +30,43 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/buyer")
 @Slf4j
-@CrossOrigin
 public class BuyerController {
 
     @Autowired
+    private BuyerServiceImpl buyerService;
+
+    @Autowired
     private HttpServletRequest httpServletRequest;
+
+    @PostMapping(value = "/register")
+    public ResultVO register(@Valid BuyerForm buyerForm, BindingResult bindingResult) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        // 先判断表单是否有错误
+        if (bindingResult.hasErrors()) {
+            log.error("【买家注册】表单错误");
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+
+        // 验证手机号与短信验证码是否对应
+        String inSessionOtpCode = (String) httpServletRequest.getSession().getAttribute(buyerForm.getTelephone());
+        if (!StringUtils.equals(inSessionOtpCode, buyerForm.getOtpCode())) {
+            log.error("【买家注册】短信验证码有误");
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+
+        // 执行注册操作
+        BuyerDTO buyerDTO = BuyerForm2BuyerDTOConverter.convert(buyerForm);
+        BuyerInfo buyerInfo = buyerService.register(buyerDTO);
+
+        // 返回前端viewobject
+        BuyerVO buyerVO = new BuyerVO();
+        buyerVO.setBuyerId(buyerInfo.getBuyerId());
+        buyerVO.setUsername(buyerInfo.getUsername());
+        buyerVO.setTelephone(buyerInfo.getTelephone());
+        buyerVO.setAge(buyerInfo.getAge());
+        buyerVO.setGender(buyerInfo.getGender());
+
+        return ResultVOUtil.success(buyerVO);
+    }
 
     @PostMapping(value = "/getotp")
     public ResultVO getOtp(@RequestParam(value = "telephone", required = true) String telephone) {
