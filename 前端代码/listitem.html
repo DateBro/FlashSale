@@ -50,8 +50,8 @@
 
             $(".content").append($(dom));
 
-            $("#itemDetail" + itemVO.id).on("click", function (e) {
-                window.location.href = "getitem.html?productId=" + $(this).data("productId");
+            $("#itemDetail" + itemVO.productId).on("click", function (e) {
+                window.location.href = "productDetail.html?productId=" + $(this).data("id");
             });
         }
 
