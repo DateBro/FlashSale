@@ -1,5 +1,6 @@
 package com.imooc.miaosha.service.Impl;
 
+import com.alibaba.druid.util.StringUtils;
 import com.imooc.miaosha.dataobject.BuyerInfo;
 import com.imooc.miaosha.dataobject.BuyerPassword;
 import com.imooc.miaosha.dto.BuyerDTO;
@@ -49,5 +50,32 @@ public class BuyerServiceImpl implements BuyerService {
         buyerPassword.setEncryptPassword(buyerDTO.getEncryptPassword());
         buyerPasswordRepository.save(buyerPassword);
         return buyerInfo;
+    }
+
+    @Override
+    public BuyerDTO validateLogin(String telephone, String password) {
+        if (StringUtils.isEmpty(telephone) || StringUtils.isEmpty(password)) {
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+
+        BuyerInfo buyerInfo = buyerInfoRepository.findByTelephone(telephone);
+        if (buyerInfo == null) {
+            throw new MiaoshaException(ResultEnum.USER_NOT_EXIST);
+        }
+
+        BuyerPassword buyerPassword = buyerPasswordRepository.findByBuyerId(buyerInfo.getBuyerId());
+        if (buyerPassword == null) {
+            throw new MiaoshaException(ResultEnum.USER_NOT_EXIST);
+        }
+
+        // 检查密码是否正确
+        if (!StringUtils.equals(password, buyerPassword.getEncryptPassword())) {
+            throw new MiaoshaException(ResultEnum.USER_PASSWORD_ERROR);
+        }
+        BuyerDTO buyerDTO = new BuyerDTO();
+        BeanUtils.copyProperties(buyerInfo, buyerDTO);
+        buyerDTO.setEncryptPassword(buyerPassword.getEncryptPassword());
+
+        return buyerDTO;
     }
 }

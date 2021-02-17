@@ -11,4 +11,6 @@ public interface BuyerService {
 
     BuyerInfo register(BuyerDTO buyerDTO);
 
+    BuyerDTO validateLogin(String telephone, String password);
+
 }

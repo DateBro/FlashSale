@@ -41,4 +41,13 @@ class BuyerServiceImplTest {
         BuyerInfo result = buyerService.register(buyerDTO);
         assertNotNull(result);
     }
+
+    @Test
+    void validateLogin() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        String telephone = "12345678123";
+        String password = "123456";
+        BuyerDTO buyerDTO = buyerService.validateLogin(telephone, PasswordUtil.EncodeByMd5(password));
+        assertNotNull(buyerDTO);
+    }
+
 }

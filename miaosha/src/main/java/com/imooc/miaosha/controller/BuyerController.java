@@ -9,6 +9,7 @@ import com.imooc.miaosha.enums.VerifyCodeEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.form.BuyerForm;
 import com.imooc.miaosha.service.Impl.BuyerServiceImpl;
+import com.imooc.miaosha.utils.PasswordUtil;
 import com.imooc.miaosha.utils.ResultVOUtil;
 import com.imooc.miaosha.utils.VerifyCodeUtil;
 import com.imooc.miaosha.viewobject.BuyerVO;
@@ -66,6 +67,25 @@ public class BuyerController {
         buyerVO.setGender(buyerInfo.getGender());
 
         return ResultVOUtil.success(buyerVO);
+    }
+
+    @PostMapping(value = "/login")
+    public ResultVO login(@RequestParam(value = "telephone", required = true) String telephone,
+                          @RequestParam(value = "password", required = true) String password) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+
+        // 入参检验
+        if (StringUtils.isEmpty(telephone) || StringUtils.isEmpty(password)) {
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+
+        // 通过用户手机号和密码检查登录是否合法
+        BuyerDTO buyerDTO = buyerService.validateLogin(telephone, PasswordUtil.EncodeByMd5(password));
+
+        // 将用户登录信息设置到session中
+        httpServletRequest.getSession().setAttribute("IS_LOGIN", true);
+        httpServletRequest.getSession().setAttribute("LOGIN_BUYER", buyerDTO);
+
+        return ResultVOUtil.success();
     }
 
     @PostMapping(value = "/getotp")
