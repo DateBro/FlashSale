@@ -47,7 +47,7 @@
                 data: {
                     "telephone": $("#telephone").val(),
                 },
-                // xhrFields: {withCredentials: true},
+                xhrFields: {withCredentials: true},
                 success: function (data) {
                     if (data.msg == "成功") {
                         alert("otp已经发送到了您的手机上，请注意查收");
