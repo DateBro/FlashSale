@@ -15,31 +15,31 @@
 		<div class="form-group">
 			<label class="control-label">商品名</label>
 			<div>
-				<input  class="form-control" type="text" name="title" id="title"/>
+				<input  class="form-control" type="text" name="productName" id="productName"/>
 			</div>	
 		</div>
 		<div class="form-group">
 			<label class="control-label">商品描述</label>
 			<div>
-				<input  class="form-control" type="text" name="description" id="description"/>
+				<input  class="form-control" type="text" name="productDescription" id="productDescription"/>
 			</div>	
 		</div>	
 		<div class="form-group">
 			<label class="control-label">价格</label>
 			<div>
-				<input  class="form-control" type="text" name="price" id="price"/>
+				<input  class="form-control" type="text" name="productPrice" id="productPrice"/>
 			</div>	
 		</div>	
 		<div class="form-group">
 			<label class="control-label">图片</label>
 			<div>
-				<input  class="form-control" type="text" name="imgUrl" id="imgUrl"/>
+				<input  class="form-control" type="text" name="productIcon" id="productIcon"/>
 			</div>	
 		</div>
 		<div class="form-group">
 			<label class="control-label">库存</label>
 			<div>
-				<input  class="form-control" type="text"  name="stock" id="stock"/>
+				<input  class="form-control" type="text"  name="productStock" id="productStock"/>
 			</div>	
 		</div>		
 		<div class="form-actions">
@@ -59,30 +59,30 @@
 
 		//绑定otp的click时间用于向后端发送获取手机验证码的请求
 		$("#create").on("click",function(){
-			var title = $("#title").val();
-			var description = $("#description").val();
-			var imgUrl = $("#imgUrl").val();
-			var price = $("#price").val();
-			var stock = $("#stock").val();
+			var productName = $("#productName").val();
+			var productDescription = $("#productDescription").val();
+			var productIcon = $("#productIcon").val();
+			var productPrice = $("#productPrice").val();
+			var productStock = $("#productStock").val();
 
 
-			if(title == null || title == ""){
+			if(productName == null || productName == ""){
 				alert("商品名不能为空");
 				return false;
 			}
-			if(description == null || description == ""){
+			if(productDescription == null || productDescription == ""){
 				alert("描述不能为空");
 				return false;
 			}
-			if(imgUrl == null || imgUrl == ""){
+			if(productIcon == null || productIcon == ""){
 				alert("图片url不能为空");
 				return false;
 			}
-			if(price == null || price == ""){
+			if(productPrice == null || productPrice == ""){
 				alert("价格不能为空");
 				return false;
 			}
-			if(stock == null || stock == ""){
+			if(productStock == null || productStock == ""){
 				alert("库存不能为空");
 				return false;
 			}
@@ -90,21 +90,21 @@
 			$.ajax({
 				type:"POST",
 				contentType:"application/x-www-form-urlencoded",
-				url:"http://localhost:8090/item/create",
+				url:"http://localhost:8080/product/create",
 				data:{
-					"title":title,
-					"description":description,
-					"imgUrl":imgUrl,
-					"price":price,
-					"stock":stock,
-					"name":name
+					"productName":productName,
+					"productDescription":productDescription,
+					"productIcon":productIcon,
+					"productPrice":productPrice,
+					"productStock":productStock,
 				},
 				xhrFields:{withCredentials:true},
 				success:function(data){
-					if(data.status == "success"){
+					if(data.msg == "成功"){
 						alert("创建成功");
+						window.location.href = "listitem.html";
 					}else{
-						alert("创建失败，原因为"+data.data.errMsg);
+						alert("创建失败，原因为"+data.msg);
 					}
 				},
 				error:function(data){
