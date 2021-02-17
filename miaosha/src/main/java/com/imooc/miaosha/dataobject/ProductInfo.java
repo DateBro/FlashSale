@@ -1,6 +1,8 @@
 package com.imooc.miaosha.dataobject;
 
 import lombok.Data;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,6 +16,8 @@ import java.math.BigDecimal;
  */
 @Entity
 @Data
+@DynamicUpdate
+@DynamicInsert
 public class ProductInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
