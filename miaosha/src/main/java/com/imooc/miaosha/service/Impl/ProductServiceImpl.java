@@ -13,6 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 /**
  * @Author DateBro
  * @Date 2021/2/17 18:33
@@ -47,6 +51,37 @@ public class ProductServiceImpl implements ProductService {
         productStock.setProductId(productDTO.getProductId());
         productStock.setStock(productDTO.getStock());
         stockRepository.save(productStock);
+
+        return productDTO;
+    }
+
+    @Override
+    public List<ProductDTO> getProductList() {
+        List<ProductInfo> productInfoList = productInfoRepository.findAll();
+        List<ProductDTO> productDTOList = productInfoList.stream().map(productInfo -> {
+            ProductDTO productDTO = new ProductDTO();
+            BeanUtils.copyProperties(productInfo, productDTO);
+            ProductStock stock = stockRepository.findByProductId(productInfo.getProductId());
+            productDTO.setStock(stock.getStock());
+            return productDTO;
+        }).collect(Collectors.toList());
+        return productDTOList;
+    }
+
+    @Override
+    public ProductDTO getProductDetail(Integer productId) {
+        Optional<ProductInfo> productInfo = productInfoRepository.findById(productId);
+        if (!productInfo.isPresent()) {
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+        ProductStock productStock = stockRepository.findByProductId(productId);
+        if(productStock==null) {
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+
+        ProductDTO productDTO = new ProductDTO();
+        BeanUtils.copyProperties(productInfo.get(), productDTO);
+        productDTO.setStock(productStock.getStock());
 
         return productDTO;
     }

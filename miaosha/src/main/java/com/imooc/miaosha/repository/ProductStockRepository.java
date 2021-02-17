@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @Date 2021/2/17 18:40
  */
 public interface ProductStockRepository extends JpaRepository<ProductStock, Integer> {
+    ProductStock findByProductId(Integer productId);
 }

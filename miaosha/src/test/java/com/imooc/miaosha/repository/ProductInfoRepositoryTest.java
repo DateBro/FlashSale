@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,6 +43,15 @@ class ProductInfoRepositoryTest {
 
         ProductInfo result = productInfoRepository.save(productInfo);
         assertNotNull(result);
+    }
+
+    @Test
+    void getProductList() {
+        List<ProductInfo> productInfoList = productInfoRepository.findAll();
+        assertNotEquals(0, productInfoList.size());
+        for (int i = 0; i < productInfoList.size(); i++) {
+            log.info("第" + i + "个商品信息为：" + productInfoList.get(i));
+        }
     }
 
 }

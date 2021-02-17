@@ -1,5 +1,6 @@
 package com.imooc.miaosha.controller;
 
+import com.imooc.miaosha.converter.ProductDTO2ProductVOConverter;
 import com.imooc.miaosha.converter.ProductForm2ProductDTOConverter;
 import com.imooc.miaosha.dto.ProductDTO;
 import com.imooc.miaosha.enums.ResultEnum;
@@ -13,11 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @Author DateBro
@@ -30,6 +30,20 @@ public class ProductController {
 
     @Autowired
     private ProductServiceImpl productService;
+
+    @GetMapping("/list")
+    public ResultVO list() {
+        List<ProductDTO> productDTOList = productService.getProductList();
+        List<ProductVO> productVOList = ProductDTO2ProductVOConverter.convert(productDTOList);
+        return ResultVOUtil.success(productVOList);
+    }
+
+    @GetMapping("/productDetail")
+    public ResultVO productDetail(@RequestParam(value = "productId", required = true) Integer productId) {
+        ProductDTO productDTO = productService.getProductDetail(productId);
+        ProductVO productVO = ProductDTO2ProductVOConverter.convert(productDTO);
+        return ResultVOUtil.success(productVO);
+    }
 
     @PostMapping("/create")
     public ResultVO create(@Valid ProductForm productForm, BindingResult bindingResult) {
@@ -46,4 +60,5 @@ public class ProductController {
 
         return ResultVOUtil.success(productVO);
     }
+
 }

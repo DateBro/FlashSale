@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @Author DateBro
@@ -35,5 +36,22 @@ class ProductServiceImplTest {
         ProductDTO result = productService.create(productDTO);
         Assertions.assertNotNull(result);
         log.info("存入的商品信息为：" + result);
+    }
+
+    @Test
+    void getProductList() {
+        List<ProductDTO> productDTOList = productService.getProductList();
+        Assertions.assertNotEquals(0, productDTOList.size());
+        for (int i = 0; i < productDTOList.size(); i++) {
+            log.info("第" + i + "个商品DTO的信息为：" + productDTOList.get(i));
+        }
+    }
+
+    @Test
+    void getProductDetail() {
+        Integer productId = 3;
+        ProductDTO productDTO = productService.getProductDetail(productId);
+        Assertions.assertNotNull(productDTO);
+        log.info("商品详情为：" + productDTO);
     }
 }

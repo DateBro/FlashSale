@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @Author DateBro
@@ -30,6 +33,23 @@ class ProductStockRepositoryTest {
         ProductStock result = stockRepository.save(productStock);
         assertNotNull(result);
         log.info("商品库存信息为：" + result);
+    }
+
+    @Test
+    void getProductList() {
+        List<ProductStock> productStockList = stockRepository.findAll();
+        assertNotEquals(0, productStockList.size());
+        for (int i = 0; i < productStockList.size(); i++) {
+            log.info("第" + i + "个商品库存信息为：" + productStockList.get(i));
+        }
+    }
+
+    @Test
+    void findByProductId() {
+        Integer productId = 3;
+        ProductStock productStock = stockRepository.findByProductId(productId);
+        assertNotNull(productStock);
+        log.info("" + productStock);
     }
 
 }
