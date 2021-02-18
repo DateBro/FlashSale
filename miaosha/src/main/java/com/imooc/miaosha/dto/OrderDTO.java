@@ -1,26 +1,17 @@
-package com.imooc.miaosha.dataobject;
+package com.imooc.miaosha.dto;
 
 import lombok.Data;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.validation.constraints.NotEmpty;
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * @Author DateBro
- * @Date 2021/2/16 15:36
+ * @Date 2021/2/18 10:40
  */
-@Entity
 @Data
-@DynamicUpdate
-@DynamicInsert
-public class OrderInfo {
-    @Id
+public class OrderDTO {
+
     private String orderId;
 
     private Integer buyerId;
@@ -42,8 +33,4 @@ public class OrderInfo {
      * 支付状态，默认为0未支付
      */
     private Integer payStatus;
-
-    private Date createTime;
-
-    private Date updateTime;
 }

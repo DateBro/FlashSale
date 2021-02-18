@@ -4,6 +4,7 @@ spring:
     username: root
     password: 880611Gakki.
     url: jdbc:mysql://39.97.186.233/miaosha?characterEncoding=utf-8&usingSSL=false
+    type: com.alibaba.druid.pool.DruidDataSource
   redis:
     host: 39.97.186.233
     port: 6379

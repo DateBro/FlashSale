@@ -2,12 +2,14 @@ package com.imooc.miaosha.service.Impl;
 
 import com.imooc.miaosha.dataobject.ProductInfo;
 import com.imooc.miaosha.dataobject.ProductStock;
+import com.imooc.miaosha.dto.OrderDTO;
 import com.imooc.miaosha.dto.ProductDTO;
 import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.repository.ProductInfoRepository;
 import com.imooc.miaosha.repository.ProductStockRepository;
 import com.imooc.miaosha.service.ProductService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
  * @Date 2021/2/17 18:33
  */
 @Service
+@Slf4j
 public class ProductServiceImpl implements ProductService {
 
     @Autowired
@@ -84,5 +87,34 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setStock(productStock.getStock());
 
         return productDTO;
+    }
+
+    @Override
+    @Transactional
+    public void decreaseStock(OrderDTO orderDTO) {
+        ProductStock productStock = stockRepository.findByProductId(orderDTO.getProductId());
+        if (productStock == null) {
+            log.error("【扣减库存】商品库存信息不存在");
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+        Integer resultStock = productStock.getStock() - orderDTO.getProductQuantity();
+        if(resultStock<0) {
+            throw new MiaoshaException(ResultEnum.STOCK_NOT_ENOUGH);
+        }
+        productStock.setStock(resultStock);
+        stockRepository.save(productStock);
+    }
+
+    @Override
+    @Transactional
+    public void increaseSales(OrderDTO orderDTO) {
+        ProductInfo productInfo = productInfoRepository.getOne(orderDTO.getProductId());
+        if (productInfo == null) {
+            log.error("【修改销量】商品不存在");
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+        Integer resultSales = productInfo.getProductSales() + orderDTO.getProductQuantity();
+        productInfo.setProductSales(resultSales);
+        productInfoRepository.save(productInfo);
     }
 }

@@ -1,5 +1,6 @@
 package com.imooc.miaosha.service.Impl;
 
+import com.imooc.miaosha.dto.OrderDTO;
 import com.imooc.miaosha.dto.ProductDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -53,5 +54,23 @@ class ProductServiceImplTest {
         ProductDTO productDTO = productService.getProductDetail(productId);
         Assertions.assertNotNull(productDTO);
         log.info("商品详情为：" + productDTO);
+    }
+
+    @Test
+    void decreaseStock() {
+        OrderDTO orderDTO = new OrderDTO();
+        orderDTO.setBuyerId(1);
+        orderDTO.setProductId(1);
+        orderDTO.setProductQuantity(1);
+        productService.decreaseStock(orderDTO);
+    }
+
+    @Test
+    void increaseSales() {
+        OrderDTO orderDTO = new OrderDTO();
+        orderDTO.setBuyerId(1);
+        orderDTO.setProductId(1);
+        orderDTO.setProductQuantity(1);
+        productService.increaseSales(orderDTO);
     }
 }
