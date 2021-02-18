@@ -12,6 +12,12 @@
 <body class="login">
 <div class="content">
     <h3 class="form-title">商品详情</h3>
+    <div id="promoStartDateContainer" class="form-group">
+        <label style="color:blue" id="promoStatus" class="control-label"></label>
+        <div>
+            <label style="color:red" class="control-label" id="promoStartTime"/>
+        </div>
+    </div>
     <div class="form-group">
         <div>
             <label class="control-label" id="productName"/>
@@ -27,6 +33,12 @@
         <label class="control-label">价格</label>
         <div>
             <label class="control-label" id="productPrice"/>
+        </div>
+    </div>
+    <div id="promoPriceContainer" class="form-group">
+        <label style="color:red" class="control-label">秒杀价格</label>
+        <div>
+            <label style="color:red" class="control-label" id="promoProductPrice"/>
         </div>
     </div>
     <div class="form-group">
@@ -76,6 +88,7 @@
                 data: {
                     "productId": g_itemVO.productId,
                     "productQuantity": 1,
+                    "promoId":g_itemVO.promoId
                 },
                 xhrFields: {withCredentials: true},
                 success: function (data) {
@@ -128,6 +141,30 @@
         $("#productPrice").text(g_itemVO.productPrice);
         $("#productIcon").attr("src", g_itemVO.productIcon);
         $("#productSales").text(g_itemVO.productSales);
+        if(g_itemVO.promoStatus == 1){
+            //秒杀活动还未开始
+            var startTime = g_itemVO.promoStartTime.replace(new RegExp("-","gm"),"/");
+            startTime = (new Date(startTime)).getTime();
+            var nowTime = Date.parse(new Date());
+            var delta = (startTime - nowTime)/1000;
+
+            if(delta <= 0){
+                //活动开始了
+                g_itemVO.promoStatus = 2;
+                reloadDom();
+            }
+            $("#promoStartTime").text("秒杀活动将于： "+g_itemVO.promoStartTime+" 开始售卖 倒计时："+delta+" 秒");
+            $("#promoPrice").text(g_itemVO.promoProductPrice);
+
+            $("#createorder").attr("disabled",true);
+        }else if(g_itemVO.promoStatus == 2){
+            //秒杀活动正在进行中
+            $("#promoStartTime").text("秒杀正在进行中");
+            $("#promoProductPrice").text(g_itemVO.promoProductPrice);
+
+            $("#createorder").attr("disabled",false);
+            $("#normalPriceContainer").hide();
+        }
     }
 </script>
 
