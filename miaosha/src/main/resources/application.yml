@@ -3,7 +3,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     username: root
     password: 880611Gakki.
-    url: jdbc:mysql://39.97.186.233/miaosha?characterEncoding=utf-8&usingSSL=false
+    url: jdbc:mysql://39.97.186.233/miaosha?characterEncoding=utf-8&usingSSL=false&zeroDateTimeBehavior=convertToNull&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
     type: com.alibaba.druid.pool.DruidDataSource
   redis:
     host: 39.97.186.233

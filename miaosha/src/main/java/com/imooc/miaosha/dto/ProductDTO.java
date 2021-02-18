@@ -26,4 +26,9 @@ public class ProductDTO {
     private String productIcon;
 
     private Integer productStatus;
+
+    /**
+     * 如果promoDTO非空说明有活动信息
+     */
+    private PromoDTO promoDTO;
 }

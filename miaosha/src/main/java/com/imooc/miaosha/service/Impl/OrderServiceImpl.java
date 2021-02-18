@@ -1,14 +1,12 @@
 package com.imooc.miaosha.service.Impl;
 
-import com.imooc.miaosha.dataobject.BuyerInfo;
 import com.imooc.miaosha.dataobject.OrderInfo;
-import com.imooc.miaosha.dataobject.ProductInfo;
+import com.imooc.miaosha.dto.BuyerDTO;
 import com.imooc.miaosha.dto.OrderDTO;
+import com.imooc.miaosha.dto.ProductDTO;
 import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
-import com.imooc.miaosha.repository.BuyerInfoRepository;
 import com.imooc.miaosha.repository.OrderInfoRepository;
-import com.imooc.miaosha.repository.ProductInfoRepository;
 import com.imooc.miaosha.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 /**
  * @Author DateBro
@@ -31,10 +28,7 @@ public class OrderServiceImpl implements OrderService {
     private OrderInfoRepository orderInfoRepository;
 
     @Autowired
-    private ProductInfoRepository productInfoRepository;
-
-    @Autowired
-    private BuyerInfoRepository buyerInfoRepository;
+    private BuyerServiceImpl buyerService;
 
     @Autowired
     private ProductServiceImpl productService;
@@ -44,15 +38,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderDTO create(OrderDTO orderDTO) {
+    public OrderDTO create(OrderDTO orderDTO, Integer promoId) {
         // 1. 检验参数，比如用户id是否合法，商品是否存在，数量是否正确
-        Optional<BuyerInfo> buyerInfo = buyerInfoRepository.findById(orderDTO.getBuyerId());
-        if (!buyerInfo.isPresent()) {
+        BuyerDTO buyerDTO = buyerService.getBuyerDetailById(orderDTO.getBuyerId());
+        if (buyerDTO == null) {
             log.error("【创建订单】用户不存在");
             throw new MiaoshaException(ResultEnum.USER_NOT_LOGIN_ERROR);
         }
-        Optional<ProductInfo> productInfo = productInfoRepository.findById(orderDTO.getProductId());
-        if (!productInfo.isPresent()) {
+        ProductDTO productDTO = productService.getProductDetail(orderDTO.getProductId());
+        if (productDTO == null) {
             log.error("【创建订单】商品不存在");
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
@@ -61,12 +55,27 @@ public class OrderServiceImpl implements OrderService {
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
 
+        // 校验活动信息
+        if (promoId != null) {
+            //（1）校验对应活动是否存在这个适用商品
+            if (promoId.intValue() != productDTO.getPromoDTO().getPromoId().intValue()) {
+                throw new MiaoshaException(ResultEnum.PROMO_NOT_EXIST);
+                //（2）校验活动是否正在进行中
+            } else if (productDTO.getPromoDTO().getPromoStatus().intValue() != 2) {
+                throw new MiaoshaException(ResultEnum.PROMO_NOT_START);
+            }
+        }
+
         // 2. 落单减库存
         productService.decreaseStock(orderDTO);
 
         // 3. 订单入库
         String orderId = sequenceService.genUniqueOrderId();
-        orderDTO.setProductPrice(productInfo.get().getProductPrice());
+        if (promoId != null) {
+            orderDTO.setProductPrice(productDTO.getPromoDTO().getPromoProductPrice());
+        } else {
+            orderDTO.setProductPrice(productDTO.getProductPrice());
+        }
         orderDTO.setOrderAmount(orderDTO.getProductPrice().multiply(new BigDecimal(orderDTO.getProductQuantity())));
         orderDTO.setOrderId(orderId);
         orderDTO.setOrderStatus(0);
@@ -82,4 +91,6 @@ public class OrderServiceImpl implements OrderService {
         // 4. 返回前端
         return orderDTO;
     }
+
+
 }

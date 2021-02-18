@@ -1,6 +1,7 @@
 package com.imooc.miaosha.service.Impl;
 
-import com.imooc.miaosha.dto.OrderDTO;
+import com.imooc.miaosha.dto.ProductDTO;
+import com.imooc.miaosha.dto.PromoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,24 +13,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @Author DateBro
- * @Date 2021/2/18 12:10
+ * @Date 2021/2/18 16:35
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @Slf4j
-class OrderServiceImplTest {
+class PromoServiceImplTest {
 
     @Autowired
-    private OrderServiceImpl orderService;
+    private PromoServiceImpl promoService;
 
     @Test
-    void create() {
-        OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setBuyerId(1);
-        orderDTO.setProductId(1);
-        orderDTO.setProductQuantity(2);
-        OrderDTO result = orderService.create(orderDTO, null);
-        assertNotNull(result);
-        log.info("创建的订单信息为：" + result);
+    void getPromoByProductId() {
+        Integer productId = 1;
+        PromoDTO promoDTO = promoService.getPromoByProductId(productId);
+        assertNotNull(promoDTO);
+        log.info("查到的活动信息为：" + promoDTO);
     }
 }

@@ -20,16 +20,21 @@ public class ProductDTO2ProductVOConverter {
         }
         ProductVO productVO = new ProductVO();
         BeanUtils.copyProperties(productDTO, productVO);
+        if (productDTO.getPromoDTO() != null) {
+            productVO.setPromoId(productDTO.getPromoDTO().getPromoId());
+            productVO.setPromoStatus(productDTO.getPromoDTO().getPromoStatus());
+            productVO.setPromoProductPrice(productDTO.getPromoDTO().getPromoProductPrice());
+            productVO.setPromoStartTime(productDTO.getPromoDTO().getPromoStartTime().toString());
+        }
+
         return productVO;
     }
 
     public static List<ProductVO> convert(List<ProductDTO> productDTOList) {
-        if (productDTOList == null || productDTOList.size()==0) {
+        if (productDTOList == null || productDTOList.size() == 0) {
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
-        List<ProductVO> productVOList = productDTOList.stream().map(productDTO -> {
-            return convert(productDTO);
-        }).collect(Collectors.toList());
+        List<ProductVO> productVOList = productDTOList.stream().map(productDTO -> convert(productDTO)).collect(Collectors.toList());
         return productVOList;
     }
 }

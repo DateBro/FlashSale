@@ -9,6 +9,8 @@ import com.imooc.miaosha.dto.BuyerDTO;
  */
 public interface BuyerService {
 
+    BuyerDTO getBuyerDetailById(Integer buyerId);
+
     BuyerInfo register(BuyerDTO buyerDTO);
 
     BuyerDTO validateLogin(String telephone, String password);

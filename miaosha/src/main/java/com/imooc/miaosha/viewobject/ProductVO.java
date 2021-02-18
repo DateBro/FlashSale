@@ -1,8 +1,10 @@
 package com.imooc.miaosha.viewobject;
 
+import com.imooc.miaosha.dto.PromoDTO;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @Author DateBro
@@ -26,4 +28,12 @@ public class ProductVO {
     private String productIcon;
 
     private Integer productStatus;
+
+    private Integer promoStatus;
+
+    private BigDecimal promoProductPrice;
+
+    private Integer promoId;
+
+    private String promoStartTime;
 }

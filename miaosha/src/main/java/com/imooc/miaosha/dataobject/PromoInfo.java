@@ -1,6 +1,8 @@
 package com.imooc.miaosha.dataobject;
 
 import lombok.Data;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,6 +17,8 @@ import java.util.Date;
  */
 @Entity
 @Data
+@DynamicUpdate
+@DynamicInsert
 public class PromoInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

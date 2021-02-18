@@ -19,6 +19,8 @@ public enum ResultEnum {
 
     //30000开头为交易信息错误定义
     STOCK_NOT_ENOUGH(30001, "商品库存不足"),
+    PROMO_NOT_EXIST(30002, "活动不存在"),
+    PROMO_NOT_START(30003, "活动尚未开始"),
     ;
 
     private Integer code;

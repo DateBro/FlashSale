@@ -4,10 +4,12 @@ import com.imooc.miaosha.dataobject.ProductInfo;
 import com.imooc.miaosha.dataobject.ProductStock;
 import com.imooc.miaosha.dto.OrderDTO;
 import com.imooc.miaosha.dto.ProductDTO;
+import com.imooc.miaosha.dto.PromoDTO;
 import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.repository.ProductInfoRepository;
 import com.imooc.miaosha.repository.ProductStockRepository;
+import com.imooc.miaosha.repository.PromoInfoRepository;
 import com.imooc.miaosha.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -32,6 +34,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductStockRepository stockRepository;
+
+    @Autowired
+    private PromoServiceImpl promoService;
 
     @Override
     @Transactional
@@ -85,6 +90,12 @@ public class ProductServiceImpl implements ProductService {
         ProductDTO productDTO = new ProductDTO();
         BeanUtils.copyProperties(productInfo.get(), productDTO);
         productDTO.setStock(productStock.getStock());
+
+        // 获取商品活动信息
+        PromoDTO promoDTO = promoService.getPromoByProductId(productId);
+        if (promoDTO != null && promoDTO.getPromoStatus().intValue() != 3) {
+            productDTO.setPromoDTO(promoDTO);
+        }
 
         return productDTO;
     }

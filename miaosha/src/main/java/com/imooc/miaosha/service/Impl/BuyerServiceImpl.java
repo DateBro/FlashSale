@@ -30,6 +30,28 @@ public class BuyerServiceImpl implements BuyerService {
     BuyerPasswordRepository buyerPasswordRepository;
 
     @Override
+    public BuyerDTO getBuyerDetailById(Integer buyerId) {
+        if (buyerId == null) {
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+        BuyerInfo buyerInfo = buyerInfoRepository.getOne(buyerId);
+        if (buyerInfo == null) {
+            log.error("【查找买家信息】买家id不存在");
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+        BuyerPassword buyerPassword = buyerPasswordRepository.findByBuyerId(buyerId);
+        if (buyerPassword == null) {
+            log.error("【查找买家信息】买家密码信息不存在");
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+        BuyerDTO buyerDTO = new BuyerDTO();
+        BeanUtils.copyProperties(buyerInfo, buyerDTO);
+        buyerDTO.setEncryptPassword(buyerPassword.getEncryptPassword());
+
+        return buyerDTO;
+    }
+
+    @Override
     @Transactional
     public BuyerInfo register(BuyerDTO buyerDTO) {
         // 首先进行参数校验

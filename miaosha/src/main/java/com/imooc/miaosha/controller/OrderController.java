@@ -35,7 +35,8 @@ public class OrderController {
 
     @PostMapping("/create")
     public ResultVO create(@RequestParam(value = "productId", required = true) Integer productId,
-                           @RequestParam(value = "productQuantity", required = true) Integer productQuantity) {
+                           @RequestParam(value = "productQuantity", required = true) Integer productQuantity,
+                           @RequestParam(value = "promoId", required = false) Integer promoId) {
         // 首先检查用户是否已登录
         Boolean isLogin = (Boolean) httpServletRequest.getSession().getAttribute("IS_LOGIN");
         BuyerDTO buyerDTO = (BuyerDTO) httpServletRequest.getSession().getAttribute("LOGIN_BUYER");
@@ -48,7 +49,7 @@ public class OrderController {
         orderDTO.setProductId(productId);
         orderDTO.setProductQuantity(productQuantity);
 
-        OrderDTO resultOrderDTO = orderService.create(orderDTO);
+        OrderDTO resultOrderDTO = orderService.create(orderDTO, promoId);
         OrderVO orderVO = new OrderVO();
         BeanUtils.copyProperties(resultOrderDTO, orderVO);
 
