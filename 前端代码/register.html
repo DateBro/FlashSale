@@ -5,6 +5,7 @@
     <link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css"/>
     <link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css"/>
     <script src="static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+    <script src="./gethost.js" type="text/javascript"></script>
 
 </head>
 
@@ -90,15 +91,15 @@
                 alert("密码不能为空");
                 return false;
             }
-			if (username == null || username == "") {
-				alert("用户名不能为空");
-				return false;
-			}
+            if (username == null || username == "") {
+                alert("用户名不能为空");
+                return false;
+            }
 
             $.ajax({
                 type: "POST",
                 contentType: "application/x-www-form-urlencoded",
-                url: "http://localhost:8080/buyer/register",
+                url: "http://" + g_host + "/buyer/register",
                 data: {
                     "telephone": $("#telephone").val(),
                     "password": password,
