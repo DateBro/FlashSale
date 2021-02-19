@@ -78,6 +78,13 @@
                     </excludes>
                 </configuration>
             </plugin>
+<!--            打包时跳过test代码-->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

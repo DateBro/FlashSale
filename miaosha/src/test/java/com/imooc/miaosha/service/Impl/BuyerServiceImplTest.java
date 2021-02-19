@@ -33,7 +33,7 @@ class BuyerServiceImplTest {
         buyerDTO.setUsername("RegisterTest");
         buyerDTO.setAge(18);
         buyerDTO.setGender(1);
-        buyerDTO.setTelephone("12345678123");
+        buyerDTO.setTelephone("12345678134");
         buyerDTO.setEncryptPassword(PasswordUtil.EncodeByMd5("123456"));
         buyerDTO.setOtpCode("1234");
         buyerDTO.setRegisterMode("byphone");

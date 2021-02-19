@@ -42,8 +42,4 @@ public class OrderInfo {
      * 支付状态，默认为0未支付
      */
     private Integer payStatus;
-
-    private Date createTime;
-
-    private Date updateTime;
 }

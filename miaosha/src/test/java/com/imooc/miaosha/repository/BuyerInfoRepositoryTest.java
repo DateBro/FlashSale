@@ -36,7 +36,7 @@ class BuyerInfoRepositoryTest {
         buyerInfo.setAge(18);
         buyerInfo.setGender(1);
         buyerInfo.setRegisterMode("byphone");
-        buyerInfo.setTelephone("18512345678");
+        buyerInfo.setTelephone("18512345679");
         BuyerInfo result = buyerInfoRepository.save(buyerInfo);
         Assertions.assertNotEquals(null, result);
     }

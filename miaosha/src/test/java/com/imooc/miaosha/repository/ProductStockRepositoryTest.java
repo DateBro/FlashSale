@@ -28,7 +28,7 @@ class ProductStockRepositoryTest {
     @Test
     void save() {
         ProductStock productStock = new ProductStock();
-        productStock.setProductId(1);
+        productStock.setProductId(100);
         productStock.setStock(100);
         ProductStock result = stockRepository.save(productStock);
         assertNotNull(result);

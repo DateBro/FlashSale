@@ -25,7 +25,7 @@ class OrderServiceImplTest {
     @Test
     void create() {
         OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setBuyerId(1);
+        orderDTO.setBuyerId(4);
         orderDTO.setProductId(1);
         orderDTO.setProductQuantity(2);
         OrderDTO result = orderService.create(orderDTO, null);

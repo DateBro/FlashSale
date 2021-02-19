@@ -1,0 +1,1 @@
+nohup java -Xms400m -Xmx400m -XX:NewSize=200m -XX:MaxNewSize=200m -jar miaosha-0.0.1-SNAPSHOT.jar --spring.config.addition-location=/opt/miaosha/application.yml > miaosha_log.log 2>&1 &

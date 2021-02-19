@@ -9,7 +9,6 @@ import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.repository.ProductInfoRepository;
 import com.imooc.miaosha.repository.ProductStockRepository;
-import com.imooc.miaosha.repository.PromoInfoRepository;
 import com.imooc.miaosha.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -17,9 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @Author DateBro
@@ -66,29 +64,30 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductDTO> getProductList() {
         List<ProductInfo> productInfoList = productInfoRepository.findAll();
-        List<ProductDTO> productDTOList = productInfoList.stream().map(productInfo -> {
+        List<ProductDTO> productDTOList = new ArrayList<>();
+        for (ProductInfo productInfo : productInfoList) {
             ProductDTO productDTO = new ProductDTO();
             BeanUtils.copyProperties(productInfo, productDTO);
             ProductStock stock = stockRepository.findByProductId(productInfo.getProductId());
             productDTO.setStock(stock.getStock());
-            return productDTO;
-        }).collect(Collectors.toList());
+            productDTOList.add(productDTO);
+        }
         return productDTOList;
     }
 
     @Override
     public ProductDTO getProductDetail(Integer productId) {
-        Optional<ProductInfo> productInfo = productInfoRepository.findById(productId);
-        if (!productInfo.isPresent()) {
+        ProductInfo productInfo = productInfoRepository.getOne(productId);
+        if (productInfo == null) {
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
         ProductStock productStock = stockRepository.findByProductId(productId);
-        if(productStock==null) {
+        if (productStock == null) {
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
 
         ProductDTO productDTO = new ProductDTO();
-        BeanUtils.copyProperties(productInfo.get(), productDTO);
+        BeanUtils.copyProperties(productInfo, productDTO);
         productDTO.setStock(productStock.getStock());
 
         // 获取商品活动信息
@@ -109,7 +108,7 @@ public class ProductServiceImpl implements ProductService {
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
         Integer resultStock = productStock.getStock() - orderDTO.getProductQuantity();
-        if(resultStock<0) {
+        if (resultStock < 0) {
             throw new MiaoshaException(ResultEnum.STOCK_NOT_ENOUGH);
         }
         productStock.setStock(resultStock);

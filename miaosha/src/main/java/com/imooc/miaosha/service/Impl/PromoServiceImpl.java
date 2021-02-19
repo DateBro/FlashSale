@@ -29,17 +29,16 @@ public class PromoServiceImpl implements PromoService {
             promoDTO = null;
         } else {
             BeanUtils.copyProperties(promoInfo, promoDTO);
-        }
-
-        // 判断当前时间是否秒杀活动即将开始或正在进行
-        DateTime promoStartTime = new DateTime(promoInfo.getPromoStartTime());
-        DateTime promoEndTime = new DateTime(promoInfo.getPromoEndTime());
-        if (promoStartTime.isAfterNow()) {
-            promoDTO.setPromoStatus(1);
-        } else if (promoEndTime.isBeforeNow()) {
-            promoDTO.setPromoStatus(3);
-        } else {
-            promoDTO.setPromoStatus(2);
+            // 判断当前时间是否秒杀活动即将开始或正在进行
+            DateTime promoStartTime = new DateTime(promoInfo.getPromoStartTime());
+            DateTime promoEndTime = new DateTime(promoInfo.getPromoEndTime());
+            if (promoStartTime.isAfterNow()) {
+                promoDTO.setPromoStatus(1);
+            } else if (promoEndTime.isBeforeNow()) {
+                promoDTO.setPromoStatus(3);
+            } else {
+                promoDTO.setPromoStatus(2);
+            }
         }
 
         return promoDTO;
