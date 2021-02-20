@@ -2,6 +2,7 @@ package com.imooc.miaosha.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -9,7 +10,8 @@ import java.math.BigDecimal;
  * @Date 2021/2/17 18:32
  */
 @Data
-public class ProductDTO {
+public class ProductDTO implements Serializable {
+    private static final long serialVersionUID = 2078252690269569352L;
 
     private Integer productId;
 

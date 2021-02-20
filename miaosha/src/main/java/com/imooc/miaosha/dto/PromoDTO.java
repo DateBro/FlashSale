@@ -2,6 +2,7 @@ package com.imooc.miaosha.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -10,7 +11,9 @@ import java.util.Date;
  * @Date 2021/2/18 16:03
  */
 @Data
-public class PromoDTO {
+public class PromoDTO implements Serializable {
+
+    private static final long serialVersionUID = -1510806108543929310L;
 
     private Integer promoId;
 

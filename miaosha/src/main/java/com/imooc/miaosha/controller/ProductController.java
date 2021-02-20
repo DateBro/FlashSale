@@ -1,5 +1,6 @@
 package com.imooc.miaosha.controller;
 
+import com.imooc.miaosha.constant.RedisConstant;
 import com.imooc.miaosha.converter.ProductDTO2ProductVOConverter;
 import com.imooc.miaosha.converter.ProductForm2ProductDTOConverter;
 import com.imooc.miaosha.dto.ProductDTO;
@@ -13,11 +14,13 @@ import com.imooc.miaosha.viewobject.ResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author DateBro
@@ -31,6 +34,9 @@ public class ProductController {
     @Autowired
     private ProductServiceImpl productService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @GetMapping("/list")
     public ResultVO list() {
         List<ProductDTO> productDTOList = productService.getProductList();
@@ -40,7 +46,14 @@ public class ProductController {
 
     @GetMapping("/productDetail")
     public ResultVO productDetail(@RequestParam(value = "productId", required = true) Integer productId) {
-        ProductDTO productDTO = productService.getProductDetail(productId);
+        // 先从redis中取商品详情信息
+        ProductDTO productDTO = (ProductDTO) redisTemplate.opsForValue().get(String.format(RedisConstant.PRODUCT_PREFIX, productId));
+        if(productDTO==null) {
+            // 如果redis中没有缓存，访问service
+            productDTO = productService.getProductDetail(productId);
+            redisTemplate.opsForValue().set(String.format(RedisConstant.PRODUCT_PREFIX, productId), productDTO, RedisConstant.PRODUCT_DETAIL_EXPIRE, TimeUnit.SECONDS);
+        }
+
         ProductVO productVO = ProductDTO2ProductVOConverter.convert(productDTO);
         return ResultVOUtil.success(productVO);
     }

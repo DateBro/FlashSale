@@ -7,4 +7,8 @@ package com.imooc.miaosha.constant;
 public interface RedisConstant {
     // 过期时间 2小时
     Integer EXPIRE = 7200;
+
+    String PRODUCT_PREFIX = "product_%s";
+
+    Integer PRODUCT_DETAIL_EXPIRE = 600;
 }
