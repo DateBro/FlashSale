@@ -2,6 +2,8 @@ package com.imooc.miaosha.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @Author DateBro
  * @Date 2021/2/16 17:09
@@ -9,7 +11,8 @@ import lombok.Data;
  * BuyerDTO的属性可以参照api文档
  */
 @Data
-public class BuyerDTO {
+public class BuyerDTO implements Serializable {
+    private static final long serialVersionUID = 8874085647279084088L;
 
     private Integer buyerId;
 

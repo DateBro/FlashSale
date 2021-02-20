@@ -1,6 +1,8 @@
 package com.imooc.miaosha.controller;
 
 import com.alibaba.druid.util.StringUtils;
+import com.imooc.miaosha.constant.CookieConstant;
+import com.imooc.miaosha.constant.RedisConstant;
 import com.imooc.miaosha.converter.BuyerForm2BuyerDTOConverter;
 import com.imooc.miaosha.dataobject.BuyerInfo;
 import com.imooc.miaosha.dto.BuyerDTO;
@@ -9,6 +11,7 @@ import com.imooc.miaosha.enums.VerifyCodeEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.form.BuyerForm;
 import com.imooc.miaosha.service.Impl.BuyerServiceImpl;
+import com.imooc.miaosha.utils.CookieUtil;
 import com.imooc.miaosha.utils.PasswordUtil;
 import com.imooc.miaosha.utils.ResultVOUtil;
 import com.imooc.miaosha.utils.VerifyCodeUtil;
@@ -16,13 +19,17 @@ import com.imooc.miaosha.viewobject.BuyerVO;
 import com.imooc.miaosha.viewobject.ResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author DateBro
@@ -38,6 +45,9 @@ public class BuyerController {
 
     @Autowired
     private HttpServletRequest httpServletRequest;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @PostMapping(value = "/register")
     public ResultVO register(@Valid BuyerForm buyerForm, BindingResult bindingResult) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -71,7 +81,8 @@ public class BuyerController {
 
     @PostMapping(value = "/login")
     public ResultVO login(@RequestParam(value = "telephone", required = true) String telephone,
-                          @RequestParam(value = "password", required = true) String password) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+                          @RequestParam(value = "password", required = true) String password,
+                          HttpServletResponse response) throws UnsupportedEncodingException, NoSuchAlgorithmException {
 
         // 入参检验
         if (StringUtils.isEmpty(telephone) || StringUtils.isEmpty(password)) {
@@ -81,9 +92,14 @@ public class BuyerController {
         // 通过用户手机号和密码检查登录是否合法
         BuyerDTO buyerDTO = buyerService.validateLogin(telephone, PasswordUtil.EncodeByMd5(password));
 
-        // 将用户登录信息设置到session中
-        httpServletRequest.getSession().setAttribute("IS_LOGIN", true);
-        httpServletRequest.getSession().setAttribute("LOGIN_BUYER", buyerDTO);
+        // 设置token到redis
+        String token = UUID.randomUUID().toString();
+        token = token.replace("-", "");
+        Integer expire = RedisConstant.EXPIRE;
+        redisTemplate.opsForValue().set(token, buyerDTO, expire, TimeUnit.SECONDS);
+
+        // 设置token到cookie
+        CookieUtil.set(response, CookieConstant.TOKEN, token, expire);
 
         return ResultVOUtil.success();
     }
