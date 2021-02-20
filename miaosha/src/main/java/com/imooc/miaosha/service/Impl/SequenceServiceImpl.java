@@ -27,28 +27,31 @@ public class SequenceServiceImpl implements SequenceService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public String genUniqueOrderId() {
         //订单号有16位
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuffer stringBuffer = new StringBuffer();
         //前8位为时间信息，年月日
         LocalDateTime now = LocalDateTime.now();
         String nowDate = now.format(DateTimeFormatter.ISO_DATE).replace("-", "");
-        stringBuilder.append(nowDate);
+        stringBuffer.append(nowDate);
 
         //中间6位为自增序列
         //获取当前sequence
         int sequence = 0;
+        // 这里如果有一个线程在前一个线程save之前拿到了sequenceInfo，那就会产生重复的orderId
         SequenceInfo sequenceInfo = sequenceInfoRepository.getOne("orderInfo");
         sequence = sequenceInfo.getCurrentValue();
         sequenceInfo.setCurrentValue(sequenceInfo.getCurrentValue() + sequenceInfo.getStep());
-        sequenceInfoRepository.save(sequenceInfo);
+//      sequenceInfoRepository.save(sequenceInfo);
+        sequenceInfoRepository.updateCurrentValue(sequenceInfo.getCurrentValue() + sequenceInfo.getStep(),
+                "orderInfo", sequenceInfo.getCurrentValue());
 
         String sequenceStr = String.valueOf(sequence);
         for (int i = 0; i < 6 - sequenceStr.length(); i++)
-            stringBuilder.append(0);
-        stringBuilder.append(sequenceStr);
+            stringBuffer.append(0);
+        stringBuffer.append(sequenceStr);
 
         //最后2位为分库分表位,暂时写死
-        stringBuilder.append("00");
+        stringBuffer.append("00");
 
-        return stringBuilder.toString();
+        return stringBuffer.toString();
     }
 }

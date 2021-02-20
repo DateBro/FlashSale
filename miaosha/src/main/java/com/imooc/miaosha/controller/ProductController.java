@@ -10,7 +10,6 @@ import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.form.ProductForm;
 import com.imooc.miaosha.service.Impl.LocalCacheServiceImpl;
 import com.imooc.miaosha.service.Impl.ProductServiceImpl;
-import com.imooc.miaosha.service.LocalCacheService;
 import com.imooc.miaosha.utils.ResultVOUtil;
 import com.imooc.miaosha.viewobject.ProductVO;
 import com.imooc.miaosha.viewobject.ResultVO;
@@ -56,11 +55,11 @@ public class ProductController {
         ProductDTO productDTO = (ProductDTO) localCacheService.get(String.format(LocalCacheConstant.PRODUCT_PREFIX, productId));
 
         if(productDTO==null) {
-            productDTO = (ProductDTO) redisTemplate.opsForValue().get(String.format(RedisConstant.PRODUCT_PREFIX, productId));
+            productDTO = (ProductDTO) redisTemplate.opsForValue().get(String.format(RedisConstant.PRODUCT_DETAIL_PREFIX, productId));
             if (productDTO == null) {
                 // 如果redis中没有缓存，访问service，并将数据保存到redis中
                 productDTO = productService.getProductDetail(productId);
-                redisTemplate.opsForValue().set(String.format(RedisConstant.PRODUCT_PREFIX, productId), productDTO, RedisConstant.PRODUCT_DETAIL_EXPIRE, TimeUnit.SECONDS);
+                redisTemplate.opsForValue().set(String.format(RedisConstant.PRODUCT_DETAIL_PREFIX, productId), productDTO, RedisConstant.PRODUCT_DETAIL_EXPIRE, TimeUnit.SECONDS);
             }
             // 将数据保存到guava本地缓存中
             localCacheService.set(String.format(LocalCacheConstant.PRODUCT_PREFIX, productId), productDTO);

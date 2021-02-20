@@ -18,6 +18,8 @@ public interface ProductService {
 
     ProductDTO getProductDetail(Integer productId);
 
+    ProductDTO getProductDetailInCache(Integer productId);
+
     void decreaseStock(OrderDTO orderDTO);
 
     void increaseSales(OrderDTO orderDTO);

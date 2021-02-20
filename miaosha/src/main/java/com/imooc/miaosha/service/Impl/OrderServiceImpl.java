@@ -8,6 +8,7 @@ import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.repository.OrderInfoRepository;
 import com.imooc.miaosha.service.OrderService;
+import com.imooc.miaosha.utils.KeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +41,12 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDTO create(OrderDTO orderDTO, Integer promoId) {
         // 1. 检验参数，比如用户id是否合法，商品是否存在，数量是否正确
-        BuyerDTO buyerDTO = buyerService.getBuyerDetailById(orderDTO.getBuyerId());
+        BuyerDTO buyerDTO = buyerService.getBuyerDetailByIdInCache(orderDTO.getBuyerId());
         if (buyerDTO == null) {
             log.error("【创建订单】用户不存在");
             throw new MiaoshaException(ResultEnum.USER_NOT_LOGIN_ERROR);
         }
-        ProductDTO productDTO = productService.getProductDetail(orderDTO.getProductId());
+        ProductDTO productDTO = productService.getProductDetailInCache(orderDTO.getProductId());
         if (productDTO == null) {
             log.error("【创建订单】商品不存在");
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
@@ -70,7 +71,9 @@ public class OrderServiceImpl implements OrderService {
         productService.decreaseStock(orderDTO);
 
         // 3. 订单入库
+        // jmeter总是报错重复的orderId，试试换成加锁的方法
         String orderId = sequenceService.genUniqueOrderId();
+//        String orderId = KeyUtil.genUniqueKey();
         if (promoId != null) {
             orderDTO.setProductPrice(productDTO.getPromoDTO().getPromoProductPrice());
         } else {

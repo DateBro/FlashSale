@@ -1,5 +1,6 @@
 package com.imooc.miaosha.service.Impl;
 
+import com.imooc.miaosha.constant.RedisConstant;
 import com.imooc.miaosha.dataobject.ProductInfo;
 import com.imooc.miaosha.dataobject.ProductStock;
 import com.imooc.miaosha.dto.OrderDTO;
@@ -13,11 +14,13 @@ import com.imooc.miaosha.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author DateBro
@@ -35,6 +38,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private PromoServiceImpl promoService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     @Transactional
@@ -96,6 +102,16 @@ public class ProductServiceImpl implements ProductService {
             productDTO.setPromoDTO(promoDTO);
         }
 
+        return productDTO;
+    }
+
+    @Override
+    public ProductDTO getProductDetailInCache(Integer productId) {
+        ProductDTO productDTO = (ProductDTO) redisTemplate.opsForValue().get(String.format(RedisConstant.PRODUCT_DETAIL_VALIDATE_PREFIX, productId));
+        if (productDTO == null) {
+            productDTO = this.getProductDetail(productId);
+            redisTemplate.opsForValue().set(String.format(RedisConstant.PRODUCT_DETAIL_VALIDATE_PREFIX, productId), productDTO, RedisConstant.PRODUCT_DETAIL_VALIDATE_EXPIRE, TimeUnit.SECONDS);
+        }
         return productDTO;
     }
 

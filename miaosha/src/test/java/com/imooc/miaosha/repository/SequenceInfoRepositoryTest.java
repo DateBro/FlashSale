@@ -32,4 +32,12 @@ class SequenceInfoRepositoryTest {
         assertNotNull(result);
     }
 
+    @Test
+    void updateCurrentValue() {
+        Integer oldValue = 696;
+        Integer currentValue = 697;
+        String sequenceId = "orderInfo";
+        sequenceInfoRepository.updateCurrentValue(currentValue, sequenceId, oldValue);
+    }
+
 }

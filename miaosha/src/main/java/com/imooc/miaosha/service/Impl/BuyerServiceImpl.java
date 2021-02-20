@@ -1,6 +1,7 @@
 package com.imooc.miaosha.service.Impl;
 
 import com.alibaba.druid.util.StringUtils;
+import com.imooc.miaosha.constant.RedisConstant;
 import com.imooc.miaosha.dataobject.BuyerInfo;
 import com.imooc.miaosha.dataobject.BuyerPassword;
 import com.imooc.miaosha.dto.BuyerDTO;
@@ -12,8 +13,11 @@ import com.imooc.miaosha.service.BuyerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author DateBro
@@ -28,6 +32,9 @@ public class BuyerServiceImpl implements BuyerService {
 
     @Autowired
     BuyerPasswordRepository buyerPasswordRepository;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public BuyerDTO getBuyerDetailById(Integer buyerId) {
@@ -48,6 +55,16 @@ public class BuyerServiceImpl implements BuyerService {
         BeanUtils.copyProperties(buyerInfo, buyerDTO);
         buyerDTO.setEncryptPassword(buyerPassword.getEncryptPassword());
 
+        return buyerDTO;
+    }
+
+    @Override
+    public BuyerDTO getBuyerDetailByIdInCache(Integer buyerId) {
+        BuyerDTO buyerDTO = (BuyerDTO) redisTemplate.opsForValue().get(String.format(RedisConstant.BUYER_DETAIL_VALIDATE_PREFIX, buyerId));
+        if (buyerDTO == null) {
+            buyerDTO = this.getBuyerDetailById(buyerId);
+            redisTemplate.opsForValue().set(String.format(RedisConstant.BUYER_DETAIL_VALIDATE_PREFIX, buyerId), buyerDTO, RedisConstant.BUYER_DETAIL_VALIDATE_EXPIRE, TimeUnit.SECONDS);
+        }
         return buyerDTO;
     }
 

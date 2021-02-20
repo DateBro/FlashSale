@@ -11,6 +11,8 @@ public interface BuyerService {
 
     BuyerDTO getBuyerDetailById(Integer buyerId);
 
+    BuyerDTO getBuyerDetailByIdInCache(Integer buyerId);
+
     BuyerInfo register(BuyerDTO buyerDTO);
 
     BuyerDTO validateLogin(String telephone, String password);
