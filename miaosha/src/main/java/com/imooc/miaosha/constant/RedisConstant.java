@@ -20,4 +20,6 @@ public interface RedisConstant {
     String PRODUCT_DETAIL_VALIDATE_PREFIX = "product_validate_%s";
 
     Integer PRODUCT_DETAIL_VALIDATE_EXPIRE = 600;
+
+    String PROMO_PRODUCT_STOCK_PREFIX = "promo_product_stock_%s";
 }

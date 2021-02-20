@@ -22,5 +22,7 @@ public interface ProductService {
 
     void decreaseStock(OrderDTO orderDTO);
 
+    void decreaseStock(Integer productId, Integer productQuantity);
+
     void increaseSales(OrderDTO orderDTO);
 }

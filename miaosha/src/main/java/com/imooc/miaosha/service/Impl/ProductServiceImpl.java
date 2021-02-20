@@ -8,6 +8,7 @@ import com.imooc.miaosha.dto.ProductDTO;
 import com.imooc.miaosha.dto.PromoDTO;
 import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
+import com.imooc.miaosha.mq.MqProducer;
 import com.imooc.miaosha.repository.ProductInfoRepository;
 import com.imooc.miaosha.repository.ProductStockRepository;
 import com.imooc.miaosha.service.ProductService;
@@ -41,6 +42,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private MqProducer mqProducer;
 
     @Override
     @Transactional
@@ -115,20 +119,42 @@ public class ProductServiceImpl implements ProductService {
         return productDTO;
     }
 
+    // 从redis缓存中扣减库存
     @Override
     @Transactional
     public void decreaseStock(OrderDTO orderDTO) {
-        ProductStock productStock = stockRepository.findByProductId(orderDTO.getProductId());
+        Integer currentStock = (Integer) redisTemplate.opsForValue().get(String.format(RedisConstant.PROMO_PRODUCT_STOCK_PREFIX, orderDTO.getProductId()));
+        if (currentStock == null) {
+            log.error("【扣减库存】商品库存信息不存在");
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+        long resultStock = redisTemplate.opsForValue().increment(String.format(RedisConstant.PROMO_PRODUCT_STOCK_PREFIX, orderDTO.getProductId()), orderDTO.getProductQuantity() * -1);
+        if (resultStock >= 0) {
+            // 异步扣减数据库库存
+            boolean mqResult = mqProducer.asyncReduceStock(orderDTO.getProductId(), orderDTO.getProductQuantity());
+            if (mqResult) {
+                // 扣减成功
+            } else {
+                // 扣减失败需要回滚
+                redisTemplate.opsForValue().increment(String.format(RedisConstant.PROMO_PRODUCT_STOCK_PREFIX, orderDTO.getProductId()), orderDTO.getProductQuantity());
+            }
+        } else {
+            redisTemplate.opsForValue().increment(String.format(RedisConstant.PROMO_PRODUCT_STOCK_PREFIX, orderDTO.getProductId()), orderDTO.getProductQuantity());
+            throw new MiaoshaException(ResultEnum.STOCK_NOT_ENOUGH);
+        }
+    }
+
+    // 从数据库中扣减库存
+    @Override
+    @Transactional
+    public void decreaseStock(Integer productId, Integer productQuantity) {
+        ProductStock productStock = stockRepository.findByProductId(productId);
         if (productStock == null) {
             log.error("【扣减库存】商品库存信息不存在");
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
-        Integer resultStock = productStock.getStock() - orderDTO.getProductQuantity();
-        if (resultStock < 0) {
-            throw new MiaoshaException(ResultEnum.STOCK_NOT_ENOUGH);
-        }
-        productStock.setStock(resultStock);
-        stockRepository.save(productStock);
+        Integer resultStock = productStock.getStock() - productQuantity;
+        stockRepository.updateStock(productId, resultStock);
     }
 
     @Override

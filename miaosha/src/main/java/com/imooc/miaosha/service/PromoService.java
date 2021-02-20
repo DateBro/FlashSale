@@ -8,4 +8,6 @@ import com.imooc.miaosha.dto.PromoDTO;
  */
 public interface PromoService {
     PromoDTO getPromoByProductId(Integer productId);
+
+    PromoDTO publishPromo(Integer promoId);
 }

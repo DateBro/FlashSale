@@ -71,9 +71,8 @@ public class OrderServiceImpl implements OrderService {
         productService.decreaseStock(orderDTO);
 
         // 3. 订单入库
-        // jmeter总是报错重复的orderId，试试换成加锁的方法
+        // jmeter总是报错重复的orderId，检查后通过update操作加锁解决问题
         String orderId = sequenceService.genUniqueOrderId();
-//        String orderId = KeyUtil.genUniqueKey();
         if (promoId != null) {
             orderDTO.setProductPrice(productDTO.getPromoDTO().getPromoProductPrice());
         } else {
