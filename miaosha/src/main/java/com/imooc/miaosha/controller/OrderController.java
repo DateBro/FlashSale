@@ -25,8 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.*;
 
 /**
  * @Author DateBro
@@ -41,9 +43,6 @@ public class OrderController {
     private HttpServletRequest httpServletRequest;
 
     @Autowired
-    private OrderServiceImpl orderService;
-
-    @Autowired
     private RedisTemplate redisTemplate;
 
     @Autowired
@@ -54,6 +53,13 @@ public class OrderController {
 
     @Autowired
     private PromoServiceImpl promoService;
+
+    private ExecutorService executorService;
+
+    @PostConstruct
+    void init() {
+        executorService = Executors.newFixedThreadPool(20);
+    }
 
     @PostMapping("/create")
     public ResultVO create(@RequestParam(value = "productId", required = true) Integer productId,
@@ -70,16 +76,33 @@ public class OrderController {
                 throw new MiaoshaException(ResultEnum.PROMO_TOKEN_INVALID);
         }
 
-        OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setBuyerId(buyerDTO.getBuyerId());
-        orderDTO.setProductId(productId);
-        orderDTO.setProductQuantity(productQuantity);
+        // 队列化泄洪
+        Future<Object> future = executorService.submit(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                OrderDTO orderDTO = new OrderDTO();
+                orderDTO.setBuyerId(buyerDTO.getBuyerId());
+                orderDTO.setProductId(productId);
+                orderDTO.setProductQuantity(productQuantity);
 
-        // 初始化库存流水
-        StockLogDTO stockLogDTO = stockLogService.initStockLog(productId, productQuantity);
+                // 初始化库存流水
+                StockLogDTO stockLogDTO = stockLogService.initStockLog(productId, productQuantity);
+                boolean result = mqProducer.transactionAsyncReduceStock(orderDTO, promoId, stockLogDTO);
+                if (!result) throw new MiaoshaException(ResultEnum.CREATE_ORDER_FAIL);
 
-        boolean result = mqProducer.transactionAsyncReduceStock(orderDTO, promoId, stockLogDTO);
-        if (!result) throw new MiaoshaException(ResultEnum.CREATE_ORDER_FAIL);
+                return null;
+            }
+        });
+
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new MiaoshaException(ResultEnum.UNKNOWN_ERROR);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            throw new MiaoshaException(ResultEnum.UNKNOWN_ERROR);
+        }
 
         return ResultVOUtil.success();
     }
