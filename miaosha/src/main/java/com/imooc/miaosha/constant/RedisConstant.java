@@ -24,4 +24,10 @@ public interface RedisConstant {
     String PROMO_PRODUCT_STOCK_PREFIX = "promo_product_stock_%s";
 
     String PRODUCT_STOCK_INVALID_PREFIX = "product_stock_invalid_%s";
+
+    String PROMO_PRODUCT_TOKEN_PATTER = "promoToken_product_%s_promo_%s_buyer_%s";
+
+    Integer PROMO_PRODUCT_TOKEN_EXPIRE = 300;
+
+    String PROMO_PRODUCT_TOKEN_LATCH_PATTERN = "promoProductTokenLatch_product_%s_promo_%s";
 }

@@ -10,4 +10,6 @@ public interface PromoService {
     PromoDTO getPromoByProductId(Integer productId);
 
     PromoDTO publishPromo(Integer promoId);
+
+    String genPromoToken(Integer promoId, Integer productId, Integer buyerId);
 }

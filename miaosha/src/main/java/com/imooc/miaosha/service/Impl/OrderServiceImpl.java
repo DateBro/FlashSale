@@ -45,11 +45,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDTO create(OrderDTO orderDTO, Integer promoId, StockLogDTO stockLogDTO) {
         // 1. 检验参数，比如用户id是否合法，商品是否存在，数量是否正确
-        BuyerDTO buyerDTO = buyerService.getBuyerDetailByIdInCache(orderDTO.getBuyerId());
-        if (buyerDTO == null) {
-            log.error("【创建订单】用户不存在");
-            throw new MiaoshaException(ResultEnum.USER_NOT_LOGIN_ERROR);
-        }
+        // 使用秒杀令牌后能调用这里的请求都是合法的
         ProductDTO productDTO = productService.getProductDetailInCache(orderDTO.getProductId());
         if (productDTO == null) {
             log.error("【创建订单】商品不存在");
@@ -60,18 +56,6 @@ public class OrderServiceImpl implements OrderService {
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
 
-        // 校验活动信息
-        if (promoId != null) {
-            //（1）校验对应活动是否存在这个适用商品
-            if (promoId.intValue() != productDTO.getPromoDTO().getPromoId().intValue()) {
-                throw new MiaoshaException(ResultEnum.PROMO_NOT_EXIST);
-                //（2）校验活动是否正在进行中
-            } else if (productDTO.getPromoDTO().getPromoStatus().intValue() != 2) {
-                throw new MiaoshaException(ResultEnum.PROMO_NOT_START);
-            }
-        }
-
-        // 2. 落单减库存，这里减的是redis缓存中的库存
         productService.decreaseStockInCache(orderDTO);
 
         // 3. 订单入库
