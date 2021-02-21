@@ -64,6 +64,13 @@
             下单
         </button>
     </div>
+    <div id="verifyDiv" style="display:none;" class="form-actions">
+        <img src=""/>
+        <input type="text" id="verifyContent" value=""/>
+        <button class="btn blue" id="verifyButton" type="submit">
+            验证
+        </button>
+    </div>
 </div>
 </body>
 
@@ -94,7 +101,7 @@
     }
 
     jQuery(document).ready(function () {
-        $("#createorder").on("click", function () {
+        $("#verifyButton").on("click", function () {
             // 先查看cookie中有没有登录信息
             var token = getCookie("token");
             if (token == null) {
@@ -109,7 +116,8 @@
                 url: "http://" + g_host + "/order/genToken",
                 data: {
                     "productId": g_itemVO.productId,
-                    "promoId": g_itemVO.promoId
+                    "promoId": g_itemVO.promoId,
+                    "verifyCode": $("#verifyContent").val()
                 },
                 xhrFields: {withCredentials: true},
                 success: function (data) {
@@ -152,8 +160,25 @@
                     alert("获取令牌失败，原因为" + data.responseText);
                 }
             });
+
         });
+        $("#createorder").on("click", function () {
+            // 先查看cookie中有没有登录信息
+            var token = getCookie("token");
+            if (token == null) {
+                alert("没有登录，不能下单");
+                window.location.href = "login.html";
+                return false;
+            }
+
+            $("#verifyDiv img").attr("src", "http://" + g_host + "/order/genVerifyCode");
+            $("#verifyDiv").show();
+
+        });
+
         initView();
+
+
     });
 
     function initView() {
