@@ -14,7 +14,7 @@ import com.imooc.miaosha.service.Impl.BuyerServiceImpl;
 import com.imooc.miaosha.utils.CookieUtil;
 import com.imooc.miaosha.utils.PasswordUtil;
 import com.imooc.miaosha.utils.ResultVOUtil;
-import com.imooc.miaosha.utils.VerifyCodeUtil;
+import com.imooc.miaosha.utils.OtpCodeUtil;
 import com.imooc.miaosha.viewobject.BuyerVO;
 import com.imooc.miaosha.viewobject.ResultVO;
 import lombok.extern.slf4j.Slf4j;
@@ -107,7 +107,7 @@ public class BuyerController {
     @PostMapping(value = "/getotp")
     public ResultVO getOtp(@RequestParam(value = "telephone", required = true) String telephone) {
         //需要按照一定的规则生成OTP验证码
-        String otp = VerifyCodeUtil.generateCode(4, VerifyCodeEnum.NUM_CODE);
+        String otp = OtpCodeUtil.generateCode(4, VerifyCodeEnum.NUM_CODE);
 
         //将OTP验证码同对应用户的手机号关联，使用httpsession的方式绑定他的手机号与OTPCODE
         httpServletRequest.getSession().setAttribute(telephone, otp);

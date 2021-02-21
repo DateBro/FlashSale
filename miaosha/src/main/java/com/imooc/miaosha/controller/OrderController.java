@@ -13,6 +13,7 @@ import com.imooc.miaosha.service.Impl.PromoServiceImpl;
 import com.imooc.miaosha.service.Impl.StockLogServiceImpl;
 import com.imooc.miaosha.utils.CookieUtil;
 import com.imooc.miaosha.utils.ResultVOUtil;
+import com.imooc.miaosha.utils.VerifyCodeUtil;
 import com.imooc.miaosha.viewobject.OrderVO;
 import com.imooc.miaosha.viewobject.ResultVO;
 import lombok.extern.slf4j.Slf4j;
@@ -20,14 +21,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
+import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.RenderedImage;
+import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -109,9 +112,16 @@ public class OrderController {
 
     @PostMapping("/genToken")
     public ResultVO genToken(@RequestParam(value = "productId", required = true) Integer productId,
-                             @RequestParam(value = "promoId", required = true) Integer promoId) {
+                             @RequestParam(value = "promoId", required = true) Integer promoId,
+                             @RequestParam(value = "verifyCode", required = true) String verifyCode) {
         Cookie cookie = CookieUtil.get(httpServletRequest, CookieConstant.TOKEN);
         BuyerDTO buyerDTO = (BuyerDTO) redisTemplate.opsForValue().get(cookie.getValue());
+
+        //通过verifycode验证验证码的有效性
+        String verifyCodeInRedis = (String) redisTemplate.opsForValue().get(String.format(RedisConstant.VERIFYCODE_BUYER_PREFIX, buyerDTO.getBuyerId()));
+        if (StringUtils.isEmpty(verifyCodeInRedis) || !verifyCodeInRedis.equalsIgnoreCase(verifyCode)) {
+            throw new MiaoshaException(ResultEnum.VERIFY_CODE_INCORRECT);
+        }
 
         //获取秒杀访问令牌
         String promoToken = promoService.genPromoToken(promoId, productId, buyerDTO.getBuyerId());
@@ -120,5 +130,21 @@ public class OrderController {
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
         return ResultVOUtil.success(promoToken);
+    }
+
+    @GetMapping("/genVerifyCode")
+    public void genVerifyCode(HttpServletResponse response) throws IOException {
+        // 先得到Buyer的信息
+        Cookie cookie = CookieUtil.get(httpServletRequest, CookieConstant.TOKEN);
+        BuyerDTO buyerDTO = (BuyerDTO) redisTemplate.opsForValue().get(cookie.getValue());
+        // 生成验证码
+        Map<String,Object> map = VerifyCodeUtil.generateCodeAndPic();
+
+        redisTemplate.opsForValue().set(String.format(RedisConstant.VERIFYCODE_BUYER_PREFIX, buyerDTO.getBuyerId()),
+                map.get("code"),
+                RedisConstant.VERIFYCODE_BUYER_EXPIRE,
+                TimeUnit.SECONDS);
+
+        ImageIO.write((RenderedImage) map.get("codePic"), "jpeg", response.getOutputStream());
     }
 }

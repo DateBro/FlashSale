@@ -30,4 +30,8 @@ public interface RedisConstant {
     Integer PROMO_PRODUCT_TOKEN_EXPIRE = 300;
 
     String PROMO_PRODUCT_TOKEN_LATCH_PATTERN = "promoProductTokenLatch_product_%s_promo_%s";
+
+    String VERIFYCODE_BUYER_PREFIX = "verifycode_buyer_%s";
+
+    Integer VERIFYCODE_BUYER_EXPIRE = 300;
 }

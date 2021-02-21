@@ -24,6 +24,7 @@ public enum ResultEnum {
     CREATE_ORDER_FAIL(30004, "下单失败"),
     PRODUCT_STOCK_NOT_EXIST(30005, "商品对应库存不存在"),
     PROMO_TOKEN_INVALID(30006, "秒杀令牌校验失败"),
+    VERIFY_CODE_INCORRECT(30007, "验证码错误"),
     ;
 
     private Integer code;
