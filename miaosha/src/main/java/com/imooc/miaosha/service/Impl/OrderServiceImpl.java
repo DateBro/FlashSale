@@ -4,6 +4,7 @@ import com.imooc.miaosha.dataobject.OrderInfo;
 import com.imooc.miaosha.dto.BuyerDTO;
 import com.imooc.miaosha.dto.OrderDTO;
 import com.imooc.miaosha.dto.ProductDTO;
+import com.imooc.miaosha.dto.StockLogDTO;
 import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.repository.OrderInfoRepository;
@@ -37,9 +38,12 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private SequenceServiceImpl sequenceService;
 
+    @Autowired
+    private StockLogServiceImpl stockLogService;
+
     @Override
     @Transactional
-    public OrderDTO create(OrderDTO orderDTO, Integer promoId) {
+    public OrderDTO create(OrderDTO orderDTO, Integer promoId, StockLogDTO stockLogDTO) {
         // 1. 检验参数，比如用户id是否合法，商品是否存在，数量是否正确
         BuyerDTO buyerDTO = buyerService.getBuyerDetailByIdInCache(orderDTO.getBuyerId());
         if (buyerDTO == null) {
@@ -89,6 +93,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 记得修改销量
         productService.increaseSales(orderDTO);
+
+        // 修改库存流水，修改为已下单状态
+        stockLogService.updateStockLogStatus(stockLogDTO.getStockLogId(), stockLogDTO.getStatus(), 2);
 
         // 4. 返回前端
         return orderDTO;

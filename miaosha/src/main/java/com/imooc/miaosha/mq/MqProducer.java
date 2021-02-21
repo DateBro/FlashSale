@@ -2,9 +2,12 @@ package com.imooc.miaosha.mq;
 
 import com.alibaba.fastjson.JSON;
 import com.imooc.miaosha.config.MqConfig;
+import com.imooc.miaosha.dataobject.StockLog;
 import com.imooc.miaosha.dto.OrderDTO;
+import com.imooc.miaosha.dto.StockLogDTO;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.service.Impl.OrderServiceImpl;
+import com.imooc.miaosha.service.Impl.StockLogServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -39,6 +42,9 @@ public class MqProducer {
     @Autowired
     private OrderServiceImpl orderService;
 
+    @Autowired
+    private StockLogServiceImpl stockLogService;
+
     @PostConstruct
     void init() throws MQClientException {
         //做mq producer的初始化
@@ -59,10 +65,16 @@ public class MqProducer {
                 Map<String, Object> argsMap = (Map) o;
                 OrderDTO orderDTO = (OrderDTO) argsMap.get("orderDTO");
                 Integer promoId = (Integer) argsMap.get("promoId");
+                StockLogDTO stockLogDTO = (StockLogDTO) argsMap.get("stockLogDTO");
                 try {
-                    orderService.create(orderDTO, promoId);
+                    orderService.create(orderDTO, promoId, stockLogDTO);
                 } catch (MiaoshaException e) {
                     log.error("【mq事务型消息生成订单】下单失败");
+
+                    // 如果下单失败，需要将库存流水状态设为回滚
+                    stockLogService.updateStockLogStatus(stockLogDTO.getStockLogId(), stockLogDTO.getStatus(), 3);
+                    stockLogDTO.setStatus(3);
+
                     return LocalTransactionState.ROLLBACK_MESSAGE;
                 }
                 return LocalTransactionState.COMMIT_MESSAGE;
@@ -70,19 +82,36 @@ public class MqProducer {
 
             @Override
             public LocalTransactionState checkLocalTransaction(MessageExt messageExt) {
-                return null;
+                // 根据库存流水的状态返回rollback或commit
+                String jsonString = new String(messageExt.getBody());
+                Map<String, Object> map = JSON.parseObject(jsonString, Map.class);
+                Integer productId = (Integer) map.get("productId");
+                Integer productQuantity = (Integer) map.get("productQuantity");
+                String stockLogId = (String) map.get("stockLogId");
+                StockLogDTO stockLogDTO = stockLogService.getStockLogDTOByStockLogId(stockLogId);
+                if (stockLogDTO == null) {
+                    return LocalTransactionState.UNKNOW;
+                }
+                if (stockLogDTO.getStatus() == 1) {
+                    return LocalTransactionState.UNKNOW;
+                } else if (stockLogDTO.getStatus() == 2) {
+                    return LocalTransactionState.COMMIT_MESSAGE;
+                }
+                return LocalTransactionState.ROLLBACK_MESSAGE;
             }
         });
     }
 
-    public boolean transactionAsyncReduceStock(OrderDTO orderDTO, Integer promoId) {
+    public boolean transactionAsyncReduceStock(OrderDTO orderDTO, Integer promoId, StockLogDTO stockLogDTO) {
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("productId", orderDTO.getProductId());
         bodyMap.put("productQuantity", orderDTO.getProductQuantity());
+        bodyMap.put("stockLogId", stockLogDTO.getStockLogId());
 
         Map<String, Object> argsMap = new HashMap<>();
         argsMap.put("orderDTO", orderDTO);
         argsMap.put("promoId", promoId);
+        argsMap.put("stockLogDTO", stockLogDTO);
 
         Message message = new Message(mqConfig.getTopicName(), "increase",
                 JSON.toJSON(bodyMap).toString().getBytes(StandardCharsets.UTF_8));
@@ -95,13 +124,9 @@ public class MqProducer {
             e.printStackTrace();
             return false;
         }
-        if(sendResult.getLocalTransactionState() == LocalTransactionState.ROLLBACK_MESSAGE){
+        if (sendResult.getLocalTransactionState() == LocalTransactionState.ROLLBACK_MESSAGE) {
             return false;
-        }else if(sendResult.getLocalTransactionState() == LocalTransactionState.COMMIT_MESSAGE){
-            return true;
-        }else{
-            return false;
-        }
+        } else return sendResult.getLocalTransactionState() == LocalTransactionState.COMMIT_MESSAGE;
     }
 
     //同步库存扣减消息

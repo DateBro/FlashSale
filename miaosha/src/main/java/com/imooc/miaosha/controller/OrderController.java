@@ -4,10 +4,12 @@ import com.alibaba.druid.util.StringUtils;
 import com.imooc.miaosha.constant.CookieConstant;
 import com.imooc.miaosha.dto.BuyerDTO;
 import com.imooc.miaosha.dto.OrderDTO;
+import com.imooc.miaosha.dto.StockLogDTO;
 import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.mq.MqProducer;
 import com.imooc.miaosha.service.Impl.OrderServiceImpl;
+import com.imooc.miaosha.service.Impl.StockLogServiceImpl;
 import com.imooc.miaosha.utils.CookieUtil;
 import com.imooc.miaosha.utils.ResultVOUtil;
 import com.imooc.miaosha.viewobject.OrderVO;
@@ -45,6 +47,9 @@ public class OrderController {
     @Autowired
     private MqProducer mqProducer;
 
+    @Autowired
+    private StockLogServiceImpl stockLogService;
+
     @PostMapping("/create")
     public ResultVO create(@RequestParam(value = "productId", required = true) Integer productId,
                            @RequestParam(value = "productQuantity", required = true) Integer productQuantity,
@@ -65,7 +70,10 @@ public class OrderController {
         orderDTO.setProductId(productId);
         orderDTO.setProductQuantity(productQuantity);
 
-        boolean result = mqProducer.transactionAsyncReduceStock(orderDTO, promoId);
+        // 初始化库存流水
+        StockLogDTO stockLogDTO = stockLogService.initStockLog(productId, productQuantity);
+
+        boolean result = mqProducer.transactionAsyncReduceStock(orderDTO, promoId, stockLogDTO);
         if (!result) {
             throw new MiaoshaException(ResultEnum.CREATE_ORDER_FAIL);
         }
