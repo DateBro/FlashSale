@@ -61,14 +61,7 @@ public class OrderController {
                            @RequestParam(value = "promoId", required = false) Integer promoId,
                            @RequestParam(value = "promoToken", required = true) String promoToken) {
         Cookie cookie = CookieUtil.get(httpServletRequest, CookieConstant.TOKEN);
-        if (cookie == null) {
-            log.warn("【下单操作】cookie中查不到token");
-            throw new MiaoshaException(ResultEnum.USER_NOT_LOGIN_ERROR);
-        }
         BuyerDTO buyerDTO = (BuyerDTO) redisTemplate.opsForValue().get(cookie.getValue());
-        if (buyerDTO == null) {
-            throw new MiaoshaException(ResultEnum.USER_NOT_LOGIN_ERROR);
-        }
 
         //校验秒杀令牌是否正确
         if (promoId != null) {
@@ -94,17 +87,9 @@ public class OrderController {
     @PostMapping("/genToken")
     public ResultVO genToken(@RequestParam(value = "productId", required = true) Integer productId,
                              @RequestParam(value = "promoId", required = true) Integer promoId) {
-        // 首先检查用户是否已登录
         Cookie cookie = CookieUtil.get(httpServletRequest, CookieConstant.TOKEN);
-        if (cookie == null) {
-            log.warn("【下单操作】cookie中查不到token");
-            throw new MiaoshaException(ResultEnum.USER_NOT_LOGIN_ERROR);
-        }
-        // 检查用户是否存在
         BuyerDTO buyerDTO = (BuyerDTO) redisTemplate.opsForValue().get(cookie.getValue());
-        if (buyerDTO == null) {
-            throw new MiaoshaException(ResultEnum.USER_NOT_LOGIN_ERROR);
-        }
+
         //获取秒杀访问令牌
         String promoToken = promoService.genPromoToken(promoId, productId, buyerDTO.getBuyerId());
         if (promoToken == null) {
