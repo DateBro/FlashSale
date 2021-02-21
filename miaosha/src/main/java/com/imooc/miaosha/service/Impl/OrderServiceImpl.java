@@ -6,10 +6,10 @@ import com.imooc.miaosha.dto.OrderDTO;
 import com.imooc.miaosha.dto.ProductDTO;
 import com.imooc.miaosha.dto.StockLogDTO;
 import com.imooc.miaosha.enums.ResultEnum;
+import com.imooc.miaosha.enums.StockLogStatusEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.repository.OrderInfoRepository;
 import com.imooc.miaosha.service.OrderService;
-import com.imooc.miaosha.utils.KeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 2. 落单减库存，这里减的是redis缓存中的库存
-        productService.decreaseStock(orderDTO);
+        productService.decreaseStockInCache(orderDTO);
 
         // 3. 订单入库
         // jmeter总是报错重复的orderId，检查后通过update操作加锁解决问题
@@ -95,7 +95,7 @@ public class OrderServiceImpl implements OrderService {
         productService.increaseSales(orderDTO);
 
         // 修改库存流水，修改为已下单状态
-        stockLogService.updateStockLogStatus(stockLogDTO.getStockLogId(), stockLogDTO.getStatus(), 2);
+        stockLogService.updateStockLogStatus(stockLogDTO.getStockLogId(), stockLogDTO.getStatus(), StockLogStatusEnum.COMMIT.getStatus());
 
         // 4. 返回前端
         return orderDTO;

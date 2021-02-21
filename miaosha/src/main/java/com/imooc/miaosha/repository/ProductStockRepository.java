@@ -13,6 +13,6 @@ public interface ProductStockRepository extends JpaRepository<ProductStock, Inte
     ProductStock findByProductId(Integer productId);
 
     @Modifying
-    @Query("update ProductStock s set s.stock=?2 where s.productId=?1")
-    void updateStock(Integer productId, Integer newStock);
+    @Query("update ProductStock s set s.stock=?2 where s.productId=?1 and s.stock=?3")
+    void updateStock(Integer productId, Integer newStock, Integer oldStock);
 }

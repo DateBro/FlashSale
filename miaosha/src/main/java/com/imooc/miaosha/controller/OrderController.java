@@ -2,6 +2,7 @@ package com.imooc.miaosha.controller;
 
 import com.alibaba.druid.util.StringUtils;
 import com.imooc.miaosha.constant.CookieConstant;
+import com.imooc.miaosha.constant.RedisConstant;
 import com.imooc.miaosha.dto.BuyerDTO;
 import com.imooc.miaosha.dto.OrderDTO;
 import com.imooc.miaosha.dto.StockLogDTO;
@@ -63,6 +64,11 @@ public class OrderController {
         BuyerDTO buyerDTO = (BuyerDTO) redisTemplate.opsForValue().get(cookie.getValue());
         if(buyerDTO == null){
             throw new MiaoshaException(ResultEnum.USER_NOT_LOGIN_ERROR);
+        }
+
+        // 检查库存售罄标识
+        if (redisTemplate.hasKey(String.format(RedisConstant.PRODUCT_STOCK_INVALID_PREFIX, productId))) {
+            throw new MiaoshaException(ResultEnum.STOCK_NOT_ENOUGH);
         }
 
         OrderDTO orderDTO = new OrderDTO();

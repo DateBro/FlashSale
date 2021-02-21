@@ -51,7 +51,7 @@ public class MqConsumer {
                 Integer productId = (Integer) map.get("productId");
                 Integer productQuantity = (Integer) map.get("productQuantity");
 
-                productService.decreaseStock(productId, productQuantity);
+                productService.decreaseStockInDB(productId, productQuantity);
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             }
         });

@@ -20,9 +20,13 @@ public interface ProductService {
 
     ProductDTO getProductDetailInCache(Integer productId);
 
-    void decreaseStock(OrderDTO orderDTO);
+    void decreaseStockInCache(OrderDTO orderDTO);
 
-    void decreaseStock(Integer productId, Integer productQuantity);
+    void decreaseStockInDB(Integer productId, Integer productQuantity);
 
     void increaseSales(OrderDTO orderDTO);
+
+    void increaseStock(Integer productId, Integer productQuantity2Increase);
+
+    void publicStock(Integer productId);
 }

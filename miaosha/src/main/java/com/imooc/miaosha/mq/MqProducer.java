@@ -5,6 +5,7 @@ import com.imooc.miaosha.config.MqConfig;
 import com.imooc.miaosha.dataobject.StockLog;
 import com.imooc.miaosha.dto.OrderDTO;
 import com.imooc.miaosha.dto.StockLogDTO;
+import com.imooc.miaosha.enums.StockLogStatusEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.service.Impl.OrderServiceImpl;
 import com.imooc.miaosha.service.Impl.StockLogServiceImpl;
@@ -72,8 +73,8 @@ public class MqProducer {
                     log.error("【mq事务型消息生成订单】下单失败");
 
                     // 如果下单失败，需要将库存流水状态设为回滚
-                    stockLogService.updateStockLogStatus(stockLogDTO.getStockLogId(), stockLogDTO.getStatus(), 3);
-                    stockLogDTO.setStatus(3);
+                    stockLogService.updateStockLogStatus(stockLogDTO.getStockLogId(), stockLogDTO.getStatus(), StockLogStatusEnum.ROLLBACK.getStatus());
+                    stockLogDTO.setStatus(StockLogStatusEnum.ROLLBACK.getStatus());
 
                     return LocalTransactionState.ROLLBACK_MESSAGE;
                 }
@@ -92,9 +93,9 @@ public class MqProducer {
                 if (stockLogDTO == null) {
                     return LocalTransactionState.UNKNOW;
                 }
-                if (stockLogDTO.getStatus() == 1) {
+                if (stockLogDTO.getStatus() == StockLogStatusEnum.INIT.getStatus()) {
                     return LocalTransactionState.UNKNOW;
-                } else if (stockLogDTO.getStatus() == 2) {
+                } else if (stockLogDTO.getStatus() == StockLogStatusEnum.COMMIT.getStatus()) {
                     return LocalTransactionState.COMMIT_MESSAGE;
                 }
                 return LocalTransactionState.ROLLBACK_MESSAGE;

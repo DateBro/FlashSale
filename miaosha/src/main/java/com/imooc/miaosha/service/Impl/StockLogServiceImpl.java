@@ -2,6 +2,7 @@ package com.imooc.miaosha.service.Impl;
 
 import com.imooc.miaosha.dataobject.StockLog;
 import com.imooc.miaosha.dto.StockLogDTO;
+import com.imooc.miaosha.enums.StockLogStatusEnum;
 import com.imooc.miaosha.repository.StockLogRepository;
 import com.imooc.miaosha.service.StockLogService;
 import com.imooc.miaosha.utils.KeyUtil;
@@ -28,7 +29,7 @@ public class StockLogServiceImpl implements StockLogService {
         StockLog stockLog = new StockLog();
         stockLog.setProductId(productId);
         stockLog.setQuantity(productQuantity);
-        stockLog.setStatus(1);
+        stockLog.setStatus(StockLogStatusEnum.INIT.getStatus());
         String stockLogId = KeyUtil.genUniqueKey();
         stockLog.setStockLogId(stockLogId);
         stockLogRepository.save(stockLog);

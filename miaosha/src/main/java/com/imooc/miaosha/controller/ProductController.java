@@ -54,7 +54,7 @@ public class ProductController {
         // 先从本地guava缓存中取商品详情信息
         ProductDTO productDTO = (ProductDTO) localCacheService.get(String.format(LocalCacheConstant.PRODUCT_PREFIX, productId));
 
-        if(productDTO==null) {
+        if (productDTO == null) {
             productDTO = (ProductDTO) redisTemplate.opsForValue().get(String.format(RedisConstant.PRODUCT_DETAIL_PREFIX, productId));
             if (productDTO == null) {
                 // 如果redis中没有缓存，访问service，并将数据保存到redis中
@@ -71,7 +71,7 @@ public class ProductController {
 
     @PostMapping("/create")
     public ResultVO create(@Valid ProductForm productForm, BindingResult bindingResult) {
-        if(bindingResult.hasErrors()) {
+        if (bindingResult.hasErrors()) {
             log.error("【创建商品】输入表单有误");
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
@@ -85,4 +85,14 @@ public class ProductController {
         return ResultVOUtil.success(productVO);
     }
 
+    @PostMapping("/increaseStock")
+    public ResultVO increaseStock(@RequestParam(value = "productId", required = true) Integer productId,
+                                  @RequestParam(value = "productQuantity2Increase", required = true) Integer productQuantity2Increase) {
+        if (productQuantity2Increase <= 0) {
+            log.error("【回补库存】回补库存数不正确");
+            throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
+        }
+        productService.increaseStock(productId, productQuantity2Increase);
+        return ResultVOUtil.success();
+    }
 }

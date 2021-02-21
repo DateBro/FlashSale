@@ -62,7 +62,7 @@ class ProductServiceImplTest {
         orderDTO.setBuyerId(1);
         orderDTO.setProductId(1);
         orderDTO.setProductQuantity(1);
-        productService.decreaseStock(orderDTO);
+        productService.decreaseStockInCache(orderDTO);
     }
 
     @Test
