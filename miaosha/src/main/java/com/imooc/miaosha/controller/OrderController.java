@@ -6,6 +6,7 @@ import com.imooc.miaosha.dto.BuyerDTO;
 import com.imooc.miaosha.dto.OrderDTO;
 import com.imooc.miaosha.enums.ResultEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
+import com.imooc.miaosha.mq.MqProducer;
 import com.imooc.miaosha.service.Impl.OrderServiceImpl;
 import com.imooc.miaosha.utils.CookieUtil;
 import com.imooc.miaosha.utils.ResultVOUtil;
@@ -41,6 +42,9 @@ public class OrderController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private MqProducer mqProducer;
+
     @PostMapping("/create")
     public ResultVO create(@RequestParam(value = "productId", required = true) Integer productId,
                            @RequestParam(value = "productQuantity", required = true) Integer productQuantity,
@@ -61,10 +65,11 @@ public class OrderController {
         orderDTO.setProductId(productId);
         orderDTO.setProductQuantity(productQuantity);
 
-        OrderDTO resultOrderDTO = orderService.create(orderDTO, promoId);
-        OrderVO orderVO = new OrderVO();
-        BeanUtils.copyProperties(resultOrderDTO, orderVO);
+        boolean result = mqProducer.transactionAsyncReduceStock(orderDTO, promoId);
+        if (!result) {
+            throw new MiaoshaException(ResultEnum.CREATE_ORDER_FAIL);
+        }
 
-        return ResultVOUtil.success(orderVO);
+        return ResultVOUtil.success();
     }
 }

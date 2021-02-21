@@ -119,7 +119,7 @@ public class ProductServiceImpl implements ProductService {
         return productDTO;
     }
 
-    // 从redis缓存中扣减库存
+    // 先从redis缓存中扣减库存
     @Override
     @Transactional
     public void decreaseStock(OrderDTO orderDTO) {
@@ -130,14 +130,9 @@ public class ProductServiceImpl implements ProductService {
         }
         long resultStock = redisTemplate.opsForValue().increment(String.format(RedisConstant.PROMO_PRODUCT_STOCK_PREFIX, orderDTO.getProductId()), orderDTO.getProductQuantity() * -1);
         if (resultStock >= 0) {
-            // 异步扣减数据库库存
-            boolean mqResult = mqProducer.asyncReduceStock(orderDTO.getProductId(), orderDTO.getProductQuantity());
-            if (mqResult) {
-                // 扣减成功
-            } else {
-                // 扣减失败需要回滚
-                redisTemplate.opsForValue().increment(String.format(RedisConstant.PROMO_PRODUCT_STOCK_PREFIX, orderDTO.getProductId()), orderDTO.getProductQuantity());
-            }
+            // 之前实现的时候是在这里通过producer发送异步扣减数据库库存消息，现在不需要了
+            // 现在是producer在消息的prepare阶段createOrder，commit之后consumer异步扣减数据库库存
+            // 这个方法现在只用来做扣减redis缓存中的库存了
         } else {
             redisTemplate.opsForValue().increment(String.format(RedisConstant.PROMO_PRODUCT_STOCK_PREFIX, orderDTO.getProductId()), orderDTO.getProductQuantity());
             throw new MiaoshaException(ResultEnum.STOCK_NOT_ENOUGH);

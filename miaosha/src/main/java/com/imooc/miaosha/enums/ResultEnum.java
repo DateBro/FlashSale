@@ -21,6 +21,7 @@ public enum ResultEnum {
     STOCK_NOT_ENOUGH(30001, "商品库存不足"),
     PROMO_NOT_EXIST(30002, "活动不存在"),
     PROMO_NOT_START(30003, "活动尚未开始"),
+    CREATE_ORDER_FAIL(30004, "下单失败"),
     ;
 
     private Integer code;

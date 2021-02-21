@@ -67,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        // 2. 落单减库存
+        // 2. 落单减库存，这里减的是redis缓存中的库存
         productService.decreaseStock(orderDTO);
 
         // 3. 订单入库
