@@ -156,6 +156,7 @@ public class ProductServiceImpl implements ProductService {
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
         Integer resultStock = productStock.getStock() - productQuantity;
+        // update时通过乐观锁保证扣减库存的一致性
         stockRepository.updateStock(productId, resultStock, productStock.getStock());
     }
 

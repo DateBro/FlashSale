@@ -2,7 +2,10 @@ package com.imooc.miaosha.mq;
 
 import com.alibaba.fastjson.JSON;
 import com.imooc.miaosha.config.MqConfig;
+import com.imooc.miaosha.dto.StockLogDTO;
+import com.imooc.miaosha.enums.StockLogStatusEnum;
 import com.imooc.miaosha.service.Impl.ProductServiceImpl;
+import com.imooc.miaosha.service.Impl.StockLogServiceImpl;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -32,6 +35,9 @@ public class MqConsumer {
     @Autowired
     private ProductServiceImpl productService;
 
+    @Autowired
+    private StockLogServiceImpl stockLogService;
+
     @PostConstruct
     void init() throws MQClientException {
         consumer = new DefaultMQPushConsumer();
@@ -50,8 +56,14 @@ public class MqConsumer {
                 Map<String, Object> map = JSON.parseObject(jsonString, Map.class);
                 Integer productId = (Integer) map.get("productId");
                 Integer productQuantity = (Integer) map.get("productQuantity");
+                String stockLogId = (String) map.get("stockLogId");
 
-                productService.decreaseStockInDB(productId, productQuantity);
+                // 进行幂等校验，只有已经有库存流水的落单订单才能扣减库存
+                StockLogDTO stockLogDTO = stockLogService.getStockLogDTOByStockLogId(stockLogId);
+                if(stockLogDTO.getStatus()==StockLogStatusEnum.COMMIT.getStatus()) {
+                    productService.decreaseStockInDB(productId, productQuantity);
+                }
+
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             }
         });
