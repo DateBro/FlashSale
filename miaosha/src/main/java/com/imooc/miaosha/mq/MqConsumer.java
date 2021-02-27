@@ -60,7 +60,8 @@ public class MqConsumer {
 
                 // 进行幂等校验，只有已经有库存流水的落单订单才能扣减库存
                 StockLogDTO stockLogDTO = stockLogService.getStockLogDTOByStockLogId(stockLogId);
-                if(stockLogDTO.getStatus()==StockLogStatusEnum.COMMIT.getStatus()) {
+                if(stockLogDTO!=null &&
+                        stockLogDTO.getStatus()==StockLogStatusEnum.COMMIT.getStatus()) {
                     productService.decreaseStockInDB(productId, productQuantity);
                 }
 

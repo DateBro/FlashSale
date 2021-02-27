@@ -138,6 +138,57 @@ productIcon: "https://img.pconline.com.cn/images/product/6272/627291/iPhone8-X2_
 }
 ```
 
+### 回补库存
+
+```
+GET /product/increaseStock
+```
+
+参数
+
+```
+productId: 1
+productQuantity2Increase: 6
+```
+
+返回
+```
+{
+  "code": 0,
+  "msg": "成功",
+  "data": null
+}
+```
+
+### 上线秒杀活动（将库存同步至redis）
+
+```
+GET /promo/publishPromo
+```
+
+参数
+
+```
+promoId: 1
+```
+
+返回
+```
+{
+  "code": 0,
+  "msg": "成功",
+  "data": {
+      "promoId":7,
+      "promoName":"秒杀测试",
+      "productId":1,
+      "promoStatus":2,
+      "promoProductPrice":100.00,
+      "promoStartTime":"2021-02-18 15:30:00.0",
+      "promoEndTime":"2021-02-19 15:30:00.0",
+  }
+}
+```
+
 ### 获取商品列表
 
 ```
@@ -247,6 +298,7 @@ POST /order/create
 productId: 1
 productQuantity: 1
 promoId: 6
+promoToken: xxxx
 ```
 
 返回
@@ -254,21 +306,46 @@ promoId: 6
 {
     "code": 0,
     "msg": "成功",
-    "data": [
-        {
-            "productId": 1,
-            "productName": "iPhone8",
-            "productPrice": 2000.00,
-            "productSales": 0,
-            "stock": 100,
-            "productDescription": "非常好用的一款手机",
-            "productIcon": "https://img.pconline.com.cn/images/product/6272/627291/iPhone8-X2_sn8.jpg",
-            "productStatus": 0,
-            "promoStatus":2,
-            "promoProductPrice":100.00,
-            "promoId":7,
-            "promoStartTime":"2021-02-18 15:30:00.0"
-        },
-    ]
+    "data": null
+}
+```
+
+### 生成图形验证码
+
+```
+GET /order/genVerifyCode
+```
+
+参数
+
+```
+```
+
+返回
+```
+```
+
+### 生成秒杀token
+
+```
+POST /order/genToken
+```
+
+参数
+
+```
+productId: 1
+promoId: 6
+verifyCode: at6x
+```
+
+返回
+```
+{
+  "code": 0,
+  "msg": "成功",
+  "data": {
+    promoToken: "xxxxxxxxxx"
+  }
 }
 ```
