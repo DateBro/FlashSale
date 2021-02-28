@@ -34,4 +34,10 @@ public interface RedisConstant {
     String VERIFYCODE_BUYER_PREFIX = "verifycode_buyer_%s";
 
     Integer VERIFYCODE_BUYER_EXPIRE = 300;
+
+    // 减数据库中商品库存时使用的分布式锁
+    String PRODUCT_STOCK_REDIS_LOCK_PREFIX = "stock_redis_lock_for_product_%s";
+
+    // 基于redis实现的分布式锁超时时间设置为 10秒，因为存入的value是当前时间+超时时间，用的是毫秒级
+    Integer REDIS_LOCK_EXPIRE = 10 * 1000;
 }

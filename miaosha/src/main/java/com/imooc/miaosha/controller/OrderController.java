@@ -67,48 +67,68 @@ public class OrderController {
     @PostMapping("/create")
     public ResultVO create(@RequestParam(value = "productId", required = true) Integer productId,
                            @RequestParam(value = "productQuantity", required = true) Integer productQuantity,
-                           @RequestParam(value = "promoId", required = false) Integer promoId,
-                           @RequestParam(value = "promoToken", required = true) String promoToken) {
+                           @RequestParam(value = "promoId", required = false) Integer promoId) {
         Cookie cookie = CookieUtil.get(httpServletRequest, CookieConstant.TOKEN);
         BuyerDTO buyerDTO = (BuyerDTO) redisTemplate.opsForValue().get(cookie.getValue());
 
-        //校验秒杀令牌是否正确
-        if (promoId != null) {
-            String inRedisPromoToken = (String) redisTemplate.opsForValue().get(String.format(RedisConstant.PROMO_PRODUCT_TOKEN_PATTER, productId, promoId, buyerDTO.getBuyerId()));
-            if (inRedisPromoToken == null || !StringUtils.equals(inRedisPromoToken, promoToken))
-                throw new MiaoshaException(ResultEnum.PROMO_TOKEN_INVALID);
-        }
+        OrderDTO orderDTO = new OrderDTO();
+        orderDTO.setBuyerId(buyerDTO.getBuyerId());
+        orderDTO.setProductId(productId);
+        orderDTO.setProductQuantity(productQuantity);
 
-        // 队列化泄洪
-        Future<Object> future = executorService.submit(new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                OrderDTO orderDTO = new OrderDTO();
-                orderDTO.setBuyerId(buyerDTO.getBuyerId());
-                orderDTO.setProductId(productId);
-                orderDTO.setProductQuantity(productQuantity);
-
-                // 初始化库存流水
-                StockLogDTO stockLogDTO = stockLogService.initStockLog(productId, productQuantity);
-                boolean result = mqProducer.transactionAsyncReduceStock(orderDTO, promoId, stockLogDTO);
-                if (!result) throw new MiaoshaException(ResultEnum.CREATE_ORDER_FAIL);
-
-                return null;
-            }
-        });
-
-        try {
-            future.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            throw new MiaoshaException(ResultEnum.UNKNOWN_ERROR);
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-            throw new MiaoshaException(ResultEnum.UNKNOWN_ERROR);
-        }
+        // 初始化库存流水
+        StockLogDTO stockLogDTO = stockLogService.initStockLog(productId, productQuantity);
+        boolean result = mqProducer.transactionAsyncReduceStock(orderDTO, promoId, stockLogDTO);
+        if (!result) throw new MiaoshaException(ResultEnum.CREATE_ORDER_FAIL);
 
         return ResultVOUtil.success();
     }
+
+//    @PostMapping("/create")
+//    public ResultVO create(@RequestParam(value = "productId", required = true) Integer productId,
+//                           @RequestParam(value = "productQuantity", required = true) Integer productQuantity,
+//                           @RequestParam(value = "promoId", required = false) Integer promoId,
+//                           @RequestParam(value = "promoToken", required = true) String promoToken) {
+//        Cookie cookie = CookieUtil.get(httpServletRequest, CookieConstant.TOKEN);
+//        BuyerDTO buyerDTO = (BuyerDTO) redisTemplate.opsForValue().get(cookie.getValue());
+//
+//        //校验秒杀令牌是否正确
+//        if (promoId != null) {
+//            String inRedisPromoToken = (String) redisTemplate.opsForValue().get(String.format(RedisConstant.PROMO_PRODUCT_TOKEN_PATTER, productId, promoId, buyerDTO.getBuyerId()));
+//            if (inRedisPromoToken == null || !StringUtils.equals(inRedisPromoToken, promoToken))
+//                throw new MiaoshaException(ResultEnum.PROMO_TOKEN_INVALID);
+//        }
+//
+//        // 队列化泄洪
+//        Future<Object> future = executorService.submit(new Callable<Object>() {
+//            @Override
+//            public Object call() throws Exception {
+//                OrderDTO orderDTO = new OrderDTO();
+//                orderDTO.setBuyerId(buyerDTO.getBuyerId());
+//                orderDTO.setProductId(productId);
+//                orderDTO.setProductQuantity(productQuantity);
+//
+//                // 初始化库存流水
+//                StockLogDTO stockLogDTO = stockLogService.initStockLog(productId, productQuantity);
+//                boolean result = mqProducer.transactionAsyncReduceStock(orderDTO, promoId, stockLogDTO);
+//                if (!result) throw new MiaoshaException(ResultEnum.CREATE_ORDER_FAIL);
+//
+//                return null;
+//            }
+//        });
+//
+//        try {
+//            future.get();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//            throw new MiaoshaException(ResultEnum.UNKNOWN_ERROR);
+//        } catch (ExecutionException e) {
+//            e.printStackTrace();
+//            throw new MiaoshaException(ResultEnum.UNKNOWN_ERROR);
+//        }
+//
+//        return ResultVOUtil.success();
+//    }
 
     @PostMapping("/genToken")
     public ResultVO genToken(@RequestParam(value = "productId", required = true) Integer productId,

@@ -14,6 +14,7 @@ import com.imooc.miaosha.mq.MqProducer;
 import com.imooc.miaosha.repository.ProductInfoRepository;
 import com.imooc.miaosha.repository.ProductStockRepository;
 import com.imooc.miaosha.service.ProductService;
+import com.imooc.miaosha.service.RedisLock;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -47,6 +49,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private MqProducer mqProducer;
+
+    @Autowired
+    private RedisLock redisLock;
 
     @Override
     @Transactional
@@ -147,17 +152,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     // 从数据库中扣减库存
+    // 一开始是通过乐观锁实现的，但后来压测时发现redis扣减的库存数量远大于数据库库存扣减数量
+    // 排查后消息队列没有消息堆积，问题应该出在这里，因为是乐观锁，
+    //所以并发很大的时候更新失败就会rollback，所以现在要改成select for update
     @Override
     @Transactional
     public void decreaseStockInDB(Integer productId, Integer productQuantity) {
-        ProductStock productStock = stockRepository.findByProductId(productId);
-        if (productStock == null) {
+
+        // 这里使用悲观锁获取库存信息
+        Optional<ProductStock> productStockOptional = stockRepository.findByProductIdPessimistic(productId);
+        if (!productStockOptional.isPresent()) {
             log.error("【扣减库存】商品库存信息不存在");
             throw new MiaoshaException(ResultEnum.PARAMETER_VALIDATION_ERROR);
         }
+        ProductStock productStock = productStockOptional.get();
         Integer resultStock = productStock.getStock() - productQuantity;
-        // update时通过乐观锁保证扣减库存的一致性
-        stockRepository.updateStock(productId, resultStock, productStock.getStock());
+        productStock.setStock(resultStock);
+        stockRepository.save(productStock);
+
+        log.info("【扣减库存】当前库存为: " + resultStock);
     }
 
     @Override
