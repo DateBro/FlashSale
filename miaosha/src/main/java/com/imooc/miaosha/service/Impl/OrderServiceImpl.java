@@ -10,6 +10,7 @@ import com.imooc.miaosha.enums.StockLogStatusEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.repository.OrderInfoRepository;
 import com.imooc.miaosha.service.OrderService;
+import com.imooc.miaosha.utils.KeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,8 @@ public class OrderServiceImpl implements OrderService {
 
         // 3. 订单入库
         // jmeter总是报错重复的orderId，检查后通过update操作加锁解决问题
-        String orderId = sequenceService.genUniqueOrderId();
+//        String orderId = sequenceService.genUniqueOrderId();
+        String orderId = KeyUtil.genUniqueKey();
         if (promoId != null) {
             orderDTO.setProductPrice(productDTO.getPromoDTO().getPromoProductPrice());
         } else {

@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+import java.util.UUID;
+
 /**
  * @Author DateBro
  * @Date 2021/2/21 12:26
@@ -30,7 +33,9 @@ public class StockLogServiceImpl implements StockLogService {
         stockLog.setProductId(productId);
         stockLog.setQuantity(productQuantity);
         stockLog.setStatus(StockLogStatusEnum.INIT.getStatus());
-        String stockLogId = KeyUtil.genUniqueKey();
+        // 因为KeyUtil的这个方法是synchronized，而且创建订单时也用到了这个方法生成id，所以会降低性能，创建订单的tps一开始在100左右上不去就是因为这里
+//        String stockLogId = KeyUtil.genUniqueKey();
+        String stockLogId = UUID.randomUUID().toString().replace("-","");
         stockLog.setStockLogId(stockLogId);
         stockLogRepository.save(stockLog);
 
@@ -46,9 +51,14 @@ public class StockLogServiceImpl implements StockLogService {
 
     @Override
     public StockLogDTO getStockLogDTOByStockLogId(String stockLogId) {
-        StockLog stockLog = stockLogRepository.getOne(stockLogId);
-        StockLogDTO stockLogDTO = new StockLogDTO();
-        BeanUtils.copyProperties(stockLog, stockLogDTO);
-        return stockLogDTO;
+        // 之前使用的getOne方法，但getOne会报错，具体问题见笔记
+        Optional<StockLog> stockLog = stockLogRepository.findById(stockLogId);
+        if (!stockLog.isPresent()) {
+            return null;
+        } else {
+            StockLogDTO stockLogDTO = new StockLogDTO();
+            BeanUtils.copyProperties(stockLog.get(), stockLogDTO);
+            return stockLogDTO;
+        }
     }
 }

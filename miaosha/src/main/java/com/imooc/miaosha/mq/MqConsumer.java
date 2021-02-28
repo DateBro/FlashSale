@@ -6,6 +6,7 @@ import com.imooc.miaosha.dto.StockLogDTO;
 import com.imooc.miaosha.enums.StockLogStatusEnum;
 import com.imooc.miaosha.service.Impl.ProductServiceImpl;
 import com.imooc.miaosha.service.Impl.StockLogServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -25,6 +26,7 @@ import java.util.Map;
  * @Date 2021/2/20 21:24
  */
 @Component
+@Slf4j
 public class MqConsumer {
 
     private DefaultMQPushConsumer consumer;
@@ -63,6 +65,8 @@ public class MqConsumer {
                 if(stockLogDTO!=null &&
                         stockLogDTO.getStatus()==StockLogStatusEnum.COMMIT.getStatus()) {
                     productService.decreaseStockInDB(productId, productQuantity);
+                } else {
+                    log.info("【mq消费者】重复扣减库存消息，不予执行");
                 }
 
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
