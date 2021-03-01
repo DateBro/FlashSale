@@ -11,6 +11,7 @@ import com.imooc.miaosha.enums.VerifyCodeEnum;
 import com.imooc.miaosha.exception.MiaoshaException;
 import com.imooc.miaosha.form.BuyerForm;
 import com.imooc.miaosha.service.Impl.BuyerServiceImpl;
+import com.imooc.miaosha.service.TxCloudSmsService;
 import com.imooc.miaosha.utils.CookieUtil;
 import com.imooc.miaosha.utils.PasswordUtil;
 import com.imooc.miaosha.utils.ResultVOUtil;
@@ -48,6 +49,9 @@ public class BuyerController {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private TxCloudSmsService txCloudSmsService;
 
     @PostMapping(value = "/register")
     public ResultVO register(@Valid BuyerForm buyerForm, BindingResult bindingResult) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -112,8 +116,8 @@ public class BuyerController {
         //将OTP验证码同对应用户的手机号关联，使用httpsession的方式绑定他的手机号与OTPCODE
         httpServletRequest.getSession().setAttribute(telephone, otp);
 
-        //将OTP验证码通过短信通道发送给用户,省略
-        log.info("手机号为 " + telephone + " 的用户生成的短信验证码为：" + otp);
+        //将OTP验证码通过腾讯云短信通道发送给用户
+        txCloudSmsService.sendSms(telephone, otp);
 
         return ResultVOUtil.success();
     }

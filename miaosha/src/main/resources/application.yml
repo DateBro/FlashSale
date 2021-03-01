@@ -19,3 +19,11 @@ mq:
   nameserver:
     addr: 39.97.186.233:9876
   topicname: stock
+
+tx:
+  sms:
+    secretId: AKIDw1umT32G2rQrR09mhT3UmqKcnoiOaCP8
+    secretKey: MODEMNBHm6FDJhrpi2EIDVEh4En7C6xL
+    appId: 1400490611
+    templateId: 880029
+    smsSign: 沉沦的白非立公众号
