@@ -41,6 +41,3 @@ Besides, this project integrated Aliyun SMS service for user registration and lo
 ### 商品详情页
 
 ![](./images/Snipaste_2021-02-27_21-07-41.png)
-
-### 参考资料				
-[聚焦Java性能优化 打造亿级流量秒杀系统](https://coding.imooc.com/class/338.html)
